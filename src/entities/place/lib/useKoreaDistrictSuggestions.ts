@@ -41,7 +41,7 @@ export function useKoreaDistrictSuggestions(query: string): Readonly<{
 
   const suggestions = useMemo(() => {
     if (status !== "success") return [];
-    return searchKoreaDistricts(items, query, 12);
+    return searchKoreaDistricts(items, query, 30);
   }, [items, query, status]);
 
   return { status, suggestions, errorMessage };

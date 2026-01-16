@@ -10,6 +10,7 @@ import { geocodePlace } from "../../features/geocode-place/api/geocodePlace";
 import { useFavorites } from "../../entities/favorite/model/useFavorites";
 
 export function HomePage() {
+  const [searchClearRequestId, setSearchClearRequestId] = useState(0);
   const [selectedCoords, setSelectedCoords] = useState<
     CoordsLatLon | undefined
   >(undefined);
@@ -36,6 +37,14 @@ export function HomePage() {
       </header>
 
       <SearchBar
+        clearRequestId={searchClearRequestId}
+        onClear={() => {
+          setSelectedCoords(undefined);
+          setSelectedLabel(undefined);
+          setSelectedPlaceId(undefined);
+          setGeocodeStatus("idle");
+          setGeocodeMessage(undefined);
+        }}
         panelOpen={Boolean(selectedLabel) || geocodeStatus !== "idle"}
         panel={
           selectedLabel || geocodeStatus !== "idle" ? (
@@ -65,6 +74,8 @@ export function HomePage() {
                               ? "즐겨찾기는 최대 6개까지 가능합니다."
                               : "이미 즐겨찾기에 있어요."
                           );
+                        } else {
+                          setSearchClearRequestId((prev) => prev + 1);
                         }
                       }}
                     >

@@ -1,13 +1,23 @@
 import type { ReactNode } from "react";
-import { useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { buildPlaceId, type Place } from "../../../entities/place/model/types";
 import { useKoreaDistrictSuggestions } from "../../../entities/place/lib/useKoreaDistrictSuggestions";
+import { recentSearches } from "../../../entities/place/lib/recentSearches";
 import { Card } from "../../../shared/ui";
 
 type SearchBarProps = {
   className?: string;
   onSelect?: (place: Place) => void;
+  /**
+   * 입력값이 비워지는 경우(예: search input의 clear(X) 버튼) 결과/미리보기 상태를 함께 초기화하기 위한 콜백.
+   */
+  onClear?: () => void;
+  /**
+   * 외부에서 SearchBar 입력값을 비워야 할 때 사용하는 트리거.
+   * 값이 변경될 때마다 내부 입력값을 ""로 리셋하고 onClear를 호출한다.
+   */
+  clearRequestId?: number;
   /**
    * 검색 결과 미리보기(선택된 장소 요약 등)를 SearchBar 카드 내부에 "접히는 패널"로 렌더하기 위한 슬롯.
    */
@@ -25,6 +35,8 @@ function clampIndex(value: number, min: number, max: number): number {
 export function SearchBar({
   className,
   onSelect,
+  onClear,
+  clearRequestId,
   panel,
   panelOpen,
 }: SearchBarProps) {
@@ -35,22 +47,38 @@ export function SearchBar({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [isComposing, setIsComposing] = useState(false);
+  const [recent, setRecent] = useState<readonly string[]>(() =>
+    recentSearches.load()
+  );
 
   const { suggestions } = useKoreaDistrictSuggestions(value);
 
-  const showList = isOpen && suggestions.length > 0;
+  const trimmed = value.trim();
+  const showingRecent = trimmed.length === 0;
+  const listItems = useMemo(() => {
+    if (showingRecent) {
+      return recent.map((label) => ({ key: `recent:${label}`, label }));
+    }
+    return suggestions.map((s) => ({
+      key: `suggestion:${s.raw}`,
+      label: s.label,
+    }));
+  }, [recent, showingRecent, suggestions]);
+
+  const showList = isOpen && listItems.length > 0;
   const clampedActiveIndex = useMemo(() => {
     if (!showList) return -1;
-    return clampIndex(activeIndex, 0, suggestions.length - 1);
-  }, [activeIndex, showList, suggestions.length]);
+    return clampIndex(activeIndex, 0, listItems.length - 1);
+  }, [activeIndex, listItems.length, showList]);
   const active = useMemo(() => {
     if (!showList || clampedActiveIndex < 0) return undefined;
-    return suggestions[clampedActiveIndex];
-  }, [clampedActiveIndex, showList, suggestions]);
+    return listItems[clampedActiveIndex];
+  }, [clampedActiveIndex, listItems, showList]);
 
   function selectLabel(label: string): void {
     const place: Place = { label, placeId: buildPlaceId(label) };
     onSelect?.(place);
+    setRecent(recentSearches.add(label));
     setValue(label);
     setIsOpen(false);
     setActiveIndex(-1);
@@ -59,6 +87,27 @@ export function SearchBar({
 
   const isPanelOpen = Boolean(panel) && Boolean(panelOpen);
   const isExpanded = showList || isPanelOpen;
+
+  const lastClearRequestIdRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (clearRequestId === undefined) return;
+    if (lastClearRequestIdRef.current === undefined) {
+      lastClearRequestIdRef.current = clearRequestId;
+      return;
+    }
+    if (lastClearRequestIdRef.current === clearRequestId) return;
+
+    lastClearRequestIdRef.current = clearRequestId;
+    const t = window.setTimeout(() => {
+      setValue("");
+      setIsOpen(false);
+      setActiveIndex(-1);
+      onClear?.();
+      inputRef.current?.focus();
+    }, 0);
+
+    return () => window.clearTimeout(t);
+  }, [clearRequestId, onClear]);
 
   return (
     <Card
@@ -70,7 +119,14 @@ export function SearchBar({
         장소 검색
       </label>
       <div className="flex items-center gap-3">
-        <div className="h-9 w-9 rounded-xl bg-black/10" aria-hidden="true" />
+        <div className="grid place-items-center rounded-xl " aria-hidden="true">
+          <img
+            src="/search.svg"
+            alt=""
+            className="h-7 w-7 "
+            draggable={false}
+          />
+        </div>
         <div className="relative w-full">
           <input
             ref={inputRef}
@@ -79,7 +135,7 @@ export function SearchBar({
             value={value}
             placeholder="도시/구/동을 검색하세요"
             autoComplete="off"
-            className="searchbar-input h-10 w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-500 outline-none"
+            className="searchbar-input h-10 w-full bg-transparent text-md font-semibold text-slate-900 placeholder:text-slate-500 outline-none"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={showList}
@@ -90,7 +146,17 @@ export function SearchBar({
                 : undefined
             }
             onChange={(e) => {
-              setValue(e.target.value);
+              const nextValue = e.target.value;
+              setValue(nextValue);
+
+              if (nextValue.trim().length === 0) {
+                // show recent searches when available
+                setIsOpen(recent.length > 0);
+                setActiveIndex(-1);
+                onClear?.();
+                return;
+              }
+
               setIsOpen(true);
               setActiveIndex(0);
             }}
@@ -98,6 +164,7 @@ export function SearchBar({
             onCompositionEnd={() => setIsComposing(false)}
             onFocus={() => {
               if (value.trim().length > 0) setIsOpen(true);
+              else if (recent.length > 0) setIsOpen(true);
             }}
             onKeyDown={(e) => {
               if (isComposing) return;
@@ -108,18 +175,18 @@ export function SearchBar({
                 }
                 e.preventDefault();
                 setActiveIndex(
-                  clampIndex(clampedActiveIndex + 1, 0, suggestions.length - 1)
+                  clampIndex(clampedActiveIndex + 1, 0, listItems.length - 1)
                 );
               } else if (e.key === "ArrowUp") {
                 if (!showList) return;
                 e.preventDefault();
                 setActiveIndex(
-                  clampIndex(clampedActiveIndex - 1, 0, suggestions.length - 1)
+                  clampIndex(clampedActiveIndex - 1, 0, listItems.length - 1)
                 );
               } else if (e.key === "Enter") {
                 if (!showList) return;
                 e.preventDefault();
-                const item = active ?? suggestions[0];
+                const item = active ?? listItems[0];
                 if (item) selectLabel(item.label);
               } else if (e.key === "Escape") {
                 setIsOpen(false);
@@ -146,11 +213,11 @@ export function SearchBar({
           <div className="-mx-4 border-t border-black/10">
             {showList ? (
               <div id={listboxId} role="listbox">
-                <ul className="max-h-[60vh] overflow-auto divide-y divide-black/10">
-                  {suggestions.map((item, idx) => {
+                <ul className="max-h-[min(60vh,576px)] overflow-auto divide-y divide-black/10">
+                  {listItems.map((item, idx) => {
                     const isActive = idx === clampedActiveIndex;
                     return (
-                      <li key={item.raw}>
+                      <li key={item.key}>
                         <button
                           id={`${listboxId}-opt-${idx}`}
                           role="option"
