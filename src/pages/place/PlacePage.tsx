@@ -78,7 +78,7 @@ export function PlacePage() {
                     {favorite.label}
                   </div>
                 ) : null}
-                <div className="mt-1 text-xs text-slate-600">Open-Meteo</div>
+                <div className="mt-1 text-xs text-slate-600"></div>
                 <div className="mt-1 text-xs text-slate-600">
                   최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
                 </div>

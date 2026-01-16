@@ -26,8 +26,19 @@ export function HomePage() {
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | undefined>(
     undefined
   );
+  const [favoriteActionMessage, setFavoriteActionMessage] = useState<
+    string | undefined
+  >(undefined);
 
   const favorites = useFavorites();
+
+  const resolvedSelectedPlaceId =
+    selectedLabel && selectedLabel.length > 0
+      ? selectedPlaceId ?? buildPlaceId(selectedLabel)
+      : undefined;
+  const selectedIsFavorite = resolvedSelectedPlaceId
+    ? favorites.isFavorite(resolvedSelectedPlaceId)
+    : false;
 
   return (
     <div className="space-y-6">
@@ -44,6 +55,7 @@ export function HomePage() {
           setSelectedPlaceId(undefined);
           setGeocodeStatus("idle");
           setGeocodeMessage(undefined);
+          setFavoriteActionMessage(undefined);
         }}
         panelOpen={Boolean(selectedLabel) || geocodeStatus !== "idle"}
         panel={
@@ -56,31 +68,39 @@ export function HomePage() {
               actions={
                 selectedCoords && selectedLabel ? (
                   <div className="flex items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium text-slate-700 hover:bg-black/10"
-                      onClick={() => {
-                        const placeId =
-                          selectedPlaceId ?? buildPlaceId(selectedLabel);
-                        const res = favorites.addFavorite({
-                          placeId,
-                          label: selectedLabel,
-                          coords: selectedCoords,
-                        });
-                        if (!res.ok) {
-                          setGeocodeStatus("error");
-                          setGeocodeMessage(
-                            res.reason === "MAX"
-                              ? "즐겨찾기는 최대 6개까지 가능합니다."
-                              : "이미 즐겨찾기에 있어요."
-                          );
-                        } else {
+                    {selectedIsFavorite ? (
+                      <div className="text-sm font-medium text-slate-600">
+                        이미 추가 된 장소에요
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium text-slate-700 hover:bg-black/10"
+                        onClick={() => {
+                          const placeId =
+                            resolvedSelectedPlaceId ??
+                            buildPlaceId(selectedLabel);
+                          const res = favorites.addFavorite({
+                            placeId,
+                            label: selectedLabel,
+                            coords: selectedCoords,
+                          });
+                          if (!res.ok) {
+                            setFavoriteActionMessage(
+                              res.reason === "MAX"
+                                ? "즐겨찾기는 최대 6개까지 가능합니다."
+                                : "이미 추가 된 장소에요."
+                            );
+                            return;
+                          }
+
+                          setFavoriteActionMessage(undefined);
                           setSearchClearRequestId((prev) => prev + 1);
-                        }
-                      }}
-                    >
-                      즐겨찾기 추가
-                    </button>
+                        }}
+                      >
+                        즐겨찾기 추가
+                      </button>
+                    )}
                   </div>
                 ) : null
               }
@@ -93,6 +113,7 @@ export function HomePage() {
           setGeocodeStatus("loading");
           setGeocodeMessage(undefined);
           setSelectedCoords(undefined);
+          setFavoriteActionMessage(undefined);
 
           geocodePlace(place.label)
             .then((coords) => {
@@ -111,6 +132,12 @@ export function HomePage() {
             });
         }}
       />
+
+      {favoriteActionMessage ? (
+        <div className="-mt-2 text-sm font-medium text-white/70">
+          {favoriteActionMessage}
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <div className="min-w-0">
