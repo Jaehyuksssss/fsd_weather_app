@@ -7,9 +7,9 @@ type EmptyStateProps = {
 export function EmptyState({ title, description, className }: EmptyStateProps) {
   return (
     <div className={["text-center", className].filter(Boolean).join(" ")}>
-      <div className="text-sm font-semibold text-white">{title}</div>
+      <div className="text-sm font-semibold">{title}</div>
       {description ? (
-        <div className="mt-1 text-xs text-white/60">{description}</div>
+        <div className="mt-1 text-xs opacity-70">{description}</div>
       ) : null}
     </div>
   );

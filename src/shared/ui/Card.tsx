@@ -6,7 +6,7 @@ type CardProps = {
 
 export function Card({ className, children, ...props }: CardProps) {
   const baseClassName =
-    "rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_12px_40px_rgba(0,0,0,0.55)]";
+    "rounded-2xl border border-black/10 bg-[#E9E8D4] text-slate-900 shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_18px_50px_rgba(0,0,0,0.18)]";
 
   return (
     <div

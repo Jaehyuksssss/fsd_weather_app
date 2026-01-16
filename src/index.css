@@ -9,3 +9,9 @@ body,
 body {
   margin: 0;
 }
+
+/* WebKit(Safari/Chrome) search input clear(X) button */
+.searchbar-input::-webkit-search-cancel-button {
+  filter: none;
+  opacity: 0.45;
+}

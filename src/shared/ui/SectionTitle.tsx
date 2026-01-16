@@ -11,11 +11,9 @@ export function SectionTitle({
 }: SectionTitleProps) {
   return (
     <div className={className}>
-      <div className="text-sm font-semibold tracking-tight text-white">
-        {title}
-      </div>
+      <div className="text-sm font-semibold tracking-tight">{title}</div>
       {subtitle ? (
-        <div className="mt-1 text-xs text-white/60">{subtitle}</div>
+        <div className="mt-1 text-xs opacity-70">{subtitle}</div>
       ) : null}
     </div>
   );

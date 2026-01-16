@@ -19,7 +19,7 @@ export function ErrorState({
     <button
       type="button"
       onClick={onRetry}
-      className="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/10 px-3 text-sm font-medium text-white hover:bg-white/15"
+      className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium hover:bg-black/10"
     >
       다시 시도
     </button>
@@ -27,9 +27,9 @@ export function ErrorState({
 
   return (
     <div className={["text-center", className].filter(Boolean).join(" ")}>
-      <div className="text-sm font-semibold text-white">{title}</div>
+      <div className="text-sm font-semibold">{title}</div>
       {description ? (
-        <div className="mt-1 text-xs text-white/60">{description}</div>
+        <div className="mt-1 text-xs opacity-70">{description}</div>
       ) : null}
       {actions ?? fallbackActions ? (
         <div className="mt-4">{actions ?? fallbackActions}</div>
