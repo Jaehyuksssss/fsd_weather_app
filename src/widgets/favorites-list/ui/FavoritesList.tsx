@@ -1,68 +1,108 @@
-import { Card, SectionTitle } from "../../../shared/ui";
+import type { Favorite } from "../../../entities/favorite/model/types";
+import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
+import { Card, EmptyState, SectionTitle } from "../../../shared/ui";
 
-type FavoriteItem = {
-  id: string;
-  name: string;
-  temperature: number;
-  condition: string;
-  min: number;
-  max: number;
-  isSelected?: boolean;
+type FavoritesListProps = {
+  favorites: readonly Favorite[];
+  selectedPlaceId?: string;
+  onSelect?: (favorite: Favorite) => void;
+  onRemove?: (placeId: string) => void;
 };
 
-const dummyFavorites: FavoriteItem[] = [
-  {
-    id: "seoul",
-    name: "Seoul",
-    temperature: 22,
-    condition: "Cloudy",
-    min: 15,
-    max: 29,
-    isSelected: true,
-  },
-  {
-    id: "busan",
-    name: "Busan",
-    temperature: 18,
-    condition: "Clear",
-    min: 13,
-    max: 24,
-  },
-];
+function FavoriteCard({
+  favorite,
+  isSelected,
+  onSelect,
+  onRemove,
+}: {
+  favorite: Favorite;
+  isSelected: boolean;
+  onSelect?: (favorite: Favorite) => void;
+  onRemove?: (placeId: string) => void;
+}) {
+  const weatherQuery = useWeatherQueryResult(favorite.coords);
+  const weather = weatherQuery.data;
 
-export function FavoritesList() {
+  return (
+    <Card
+      className={[
+        "px-4 py-3",
+        isSelected ? "ring-2 ring-sky-500/25 border-sky-500/25" : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <button
+        type="button"
+        className="block w-full text-left"
+        onClick={() => onSelect?.(favorite)}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold">{favorite.label}</div>
+            <div className="mt-1 text-xs text-slate-600">
+              {weatherQuery.isLoading
+                ? "날씨 불러오는 중..."
+                : weatherQuery.isError
+                ? "연동 실패"
+                : "Open-Meteo"}
+            </div>
+            <div className="mt-3 text-[11px] text-slate-600">
+              {weather ? (
+                <>
+                  H:{weather.maxTempC}° L:{weather.minTempC}°
+                </>
+              ) : (
+                <>H:- L:-</>
+              )}
+            </div>
+          </div>
+          <div className="text-3xl font-semibold tracking-tight">
+            {weather ? `${weather.currentTempC}°` : "-"}
+          </div>
+        </div>
+      </button>
+
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <div />
+        <button
+          type="button"
+          className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
+          onClick={() => onRemove?.(favorite.placeId)}
+        >
+          삭제
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+export function FavoritesList({
+  favorites,
+  selectedPlaceId,
+  onSelect,
+  onRemove,
+}: FavoritesListProps) {
   return (
     <section className="space-y-3">
       <SectionTitle title="Favorites" subtitle="최대 6개" />
       <div className="space-y-3">
-        {dummyFavorites.map((item) => (
-          <Card
-            key={item.id}
-            className={[
-              "px-4 py-3",
-              item.isSelected
-                ? "ring-2 ring-sky-500/25 border-sky-500/25"
-                : undefined,
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold">{item.name}</div>
-                <div className="mt-1 text-xs text-slate-600">
-                  {item.condition}
-                </div>
-                <div className="mt-3 text-[11px] text-slate-600">
-                  H:{item.max}° L:{item.min}°
-                </div>
-              </div>
-              <div className="text-3xl font-semibold tracking-tight">
-                {item.temperature}°
-              </div>
-            </div>
-          </Card>
-        ))}
+        {favorites.length === 0 ? (
+          <EmptyState
+            title="즐겨찾기가 비어있어요"
+            description="검색으로 추가해보세요."
+          />
+        ) : (
+          favorites.map((fav) => (
+            <FavoriteCard
+              key={fav.placeId}
+              favorite={fav}
+              isSelected={selectedPlaceId === fav.placeId}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+          ))
+        )}
       </div>
     </section>
   );

@@ -1,12 +1,14 @@
 import type { CoordsLatLon } from "../../../entities/place/model/types";
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
 import { Card, SectionTitle } from "../../../shared/ui";
+import type { ReactNode } from "react";
 
 type SelectedPlaceCardProps = {
   label: string;
   coords?: CoordsLatLon;
   resolvingStatus: "idle" | "loading" | "error" | "success";
   resolvingMessage?: string;
+  actions?: ReactNode;
 };
 
 export function SelectedPlaceCard({
@@ -14,6 +16,7 @@ export function SelectedPlaceCard({
   coords,
   resolvingStatus,
   resolvingMessage,
+  actions,
 }: SelectedPlaceCardProps) {
   const weatherQuery = useWeatherQueryResult(coords);
   const weather = weatherQuery.data;
@@ -57,6 +60,8 @@ export function SelectedPlaceCard({
             해당 장소의 정보가 제공되지 않습니다.
           </div>
         )}
+
+        {actions ? <div className="mt-4">{actions}</div> : null}
       </Card>
     </section>
   );

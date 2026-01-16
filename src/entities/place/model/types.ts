@@ -10,11 +10,14 @@ export type Place = {
 };
 
 function normalizeLabelForId(label: string): string {
-  return label
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "");
+  return (
+    label
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      // allow unicode letters/numbers (e.g., Korean), plus hyphen
+      .replace(/[^\p{L}\p{N}-]/gu, "")
+  );
 }
 
 export function buildPlaceId(label: string): string {

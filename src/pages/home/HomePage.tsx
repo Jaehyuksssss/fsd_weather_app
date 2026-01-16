@@ -5,7 +5,9 @@ import { SelectedPreview } from "../../widgets/selected-preview";
 import { SelectedPlaceCard } from "../../widgets/selected-place-card";
 import { useState } from "react";
 import type { CoordsLatLon, Place } from "../../entities/place/model/types";
+import { buildPlaceId } from "../../entities/place/model/types";
 import { geocodePlace } from "../../features/geocode-place/api/geocodePlace";
+import { useFavorites } from "../../entities/favorite/model/useFavorites";
 
 export function HomePage() {
   const [selectedCoords, setSelectedCoords] = useState<
@@ -20,6 +22,11 @@ export function HomePage() {
   const [geocodeMessage, setGeocodeMessage] = useState<string | undefined>(
     undefined
   );
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | undefined>(
+    undefined
+  );
+
+  const favorites = useFavorites();
 
   return (
     <div className="space-y-6">
@@ -31,6 +38,7 @@ export function HomePage() {
       <SearchBar
         onSelect={(place: Place) => {
           setSelectedLabel(place.label);
+          setSelectedPlaceId(place.placeId);
           setGeocodeStatus("loading");
           setGeocodeMessage(undefined);
           setSelectedCoords(undefined);
@@ -59,13 +67,52 @@ export function HomePage() {
           coords={selectedCoords}
           resolvingStatus={geocodeStatus}
           resolvingMessage={geocodeMessage}
+          actions={
+            selectedCoords && selectedLabel ? (
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium text-slate-700 hover:bg-black/10"
+                  onClick={() => {
+                    const placeId = buildPlaceId(selectedLabel);
+                    const res = favorites.addFavorite({
+                      placeId,
+                      label: selectedLabel,
+                      coords: selectedCoords,
+                    });
+                    if (!res.ok) {
+                      setGeocodeStatus("error");
+                      setGeocodeMessage(
+                        res.reason === "MAX"
+                          ? "즐겨찾기는 최대 6개까지 가능합니다."
+                          : "이미 즐겨찾기에 있어요."
+                      );
+                    }
+                  }}
+                >
+                  즐겨찾기 추가
+                </button>
+              </div>
+            ) : null
+          }
         />
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="min-w-0 space-y-6">
           <MyLocationCard />
-          <FavoritesList />
+          <FavoritesList
+            favorites={favorites.favorites}
+            selectedPlaceId={selectedPlaceId}
+            onSelect={(fav) => {
+              setSelectedLabel(fav.label);
+              setSelectedCoords(fav.coords);
+              setSelectedPlaceId(fav.placeId);
+              setGeocodeStatus("success");
+              setGeocodeMessage(undefined);
+            }}
+            onRemove={(placeId) => favorites.removeFavorite(placeId)}
+          />
         </div>
         <div className="min-w-0 lg:pt-[34px]">
           <SelectedPreview
