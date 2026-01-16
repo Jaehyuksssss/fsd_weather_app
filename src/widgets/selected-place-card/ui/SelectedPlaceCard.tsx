@@ -48,7 +48,7 @@ export function SelectedPlaceCard({
               <div className="text-sm font-semibold">{label}</div>
               <div className="mt-1 text-xs text-slate-600">Open-Meteo</div>
               <div className="mt-3 text-xs text-slate-600">
-                H:{weather.maxTempC}° L:{weather.minTempC}°
+                최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
               </div>
             </div>
             <div className="text-4xl font-semibold tracking-tight">
@@ -66,5 +66,3 @@ export function SelectedPlaceCard({
     </section>
   );
 }
-
-

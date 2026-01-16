@@ -61,10 +61,10 @@ function FavoriteCard({
             <div className="mt-3 text-[11px] text-slate-600">
               {weather ? (
                 <>
-                  H:{weather.maxTempC}° L:{weather.minTempC}°
+                  최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
                 </>
               ) : (
-                <>H:- L:-</>
+                <>최고 - · 최저 -</>
               )}
             </div>
           </div>

@@ -20,11 +20,6 @@ export function MyLocationCard() {
             <div className="text-[11px] text-slate-600">
               브라우저 위치 권한 팝업이 떠있는지 확인해 주세요.
             </div>
-            {import.meta.env.DEV ? (
-              <div className="mt-3 text-[11px] text-slate-600">
-                debug: source={location.source} / note={location.note ?? "-"}
-              </div>
-            ) : null}
           </div>
         ) : weatherQuery.isLoading ? (
           <div className="text-sm text-slate-700">날씨 불러오는 중...</div>
@@ -56,7 +51,7 @@ export function MyLocationCard() {
                   : "Open-Meteo"}
               </div>
               <div className="mt-3 text-xs text-slate-600">
-                H:{weather.maxTempC}° L:{weather.minTempC}°
+                최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
               </div>
             </div>
             <div className="text-4xl font-semibold tracking-tight">
