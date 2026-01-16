@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { HomePage } from "../../pages/home";
-import { AppShell } from "../ui/AppShell";
+import { AppShell } from "../layout/AppShell";
 
 export const router = createBrowserRouter([
   {
