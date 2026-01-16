@@ -42,12 +42,14 @@ function FavoriteCard({
         .join(" ")}
     >
       {/* Click/hover area: cover the whole card except buttons (buttons are pointer-events-auto). */}
-      <Link
-        to={`/place/${favorite.placeId}`}
-        aria-label={`상세 보기: ${favorite.alias ?? favorite.label}`}
-        className="absolute inset-0 rounded-2xl transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
-        onClick={() => onSelect?.(favorite)}
-      />
+      {!isEditing ? (
+        <Link
+          to={`/place/${favorite.placeId}`}
+          aria-label={`상세 보기: ${favorite.alias ?? favorite.label}`}
+          className="absolute inset-0 rounded-2xl transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
+          onClick={() => onSelect?.(favorite)}
+        />
+      ) : null}
 
       <div className="relative z-10 pointer-events-none">
         <div className="flex items-start justify-between gap-4">
@@ -142,13 +144,15 @@ function FavoriteCard({
             별칭
           </button>
         )}
-        <button
-          type="button"
-          className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
-          onClick={() => onRemove?.(favorite.placeId)}
-        >
-          삭제
-        </button>
+        {!isEditing ? (
+          <button
+            type="button"
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
+            onClick={() => onRemove?.(favorite.placeId)}
+          >
+            삭제
+          </button>
+        ) : null}
       </div>
     </Card>
   );

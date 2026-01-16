@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 
 import { findFavoriteByPlaceId } from "../../entities/favorite/model/selectors";
@@ -18,6 +18,7 @@ type RouteParams = {
 
 export function PlacePage() {
   const params = useParams<RouteParams>();
+  const navigate = useNavigate();
   const favorites = useFavorites();
 
   const placeId = params.placeId ?? "";
@@ -36,6 +37,16 @@ export function PlacePage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center">
+        <button
+          type="button"
+          className="inline-flex h-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 px-3 text-sm font-semibold text-white/90 hover:bg-white/15"
+          onClick={() => navigate(-1)}
+        >
+          ← 뒤로가기
+        </button>
+      </div>
+
       <SectionTitle title="Detail" subtitle="즐겨찾기 상세" />
 
       <Card className="p-4">
@@ -151,14 +162,6 @@ export function PlacePage() {
                   </button>
                 )}
               </div>
-
-              <button
-                type="button"
-                className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
-                onClick={() => favorites.removeFavorite(placeId)}
-              >
-                즐겨찾기 삭제
-              </button>
             </div>
 
             <div className="text-sm font-semibold text-slate-900">시간대별</div>
@@ -200,10 +203,6 @@ export function PlacePage() {
           <EmptyState title="해당 장소의 정보가 제공되지 않습니다." />
         )}
       </Card>
-
-      <Link className="text-sm underline text-white/80" to="/">
-        홈으로
-      </Link>
     </div>
   );
 }
