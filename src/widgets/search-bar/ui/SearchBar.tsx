@@ -244,7 +244,7 @@ export function SearchBar({
                   </div>
                 ) : null}
 
-                <ul className="max-h-[min(60vh,576px)] overflow-auto px-2 pb-2">
+                <ul className="max-h-[min(40vh,320px)] overflow-auto overscroll-contain px-2 pb-2">
                   {listItems.map((item, idx) => {
                     const isActive = idx === clampedActiveIndex;
                     return (

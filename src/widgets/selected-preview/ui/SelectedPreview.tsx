@@ -2,6 +2,7 @@ import { useWeatherQueryResult } from "../../../entities/weather/query/useWeathe
 import { Card, SectionTitle, SwipeScroll } from "../../../shared/ui";
 import { useResolvedLocation } from "../../../features/detect-location/model/useResolvedLocation";
 import type { CoordsLatLon } from "../../../entities/place/model/types";
+import { usePlaceQueryResult } from "../../../entities/place/query/usePlaceQuery";
 
 function formatMonthDay(timeISO: string): string {
   // "YYYY-MM-DDTHH:MM" -> "MM/DD"
@@ -21,6 +22,10 @@ type SelectedPreviewProps = {
    */
   coords?: CoordsLatLon;
   /**
+   * 선택된 지역 라벨(검색/즐겨찾기 등). 없으면 좌표 기반 reverse geocoding 결과를 사용한다.
+   */
+  label?: string;
+  /**
    * 검색 지오코딩 로딩/실패 UI용 상태.
    */
   resolvingStatus?: "idle" | "loading" | "error" | "success";
@@ -29,6 +34,7 @@ type SelectedPreviewProps = {
 
 export function SelectedPreview({
   coords: overrideCoords,
+  label: overrideLabel,
   resolvingStatus = "idle",
   resolvingMessage,
 }: SelectedPreviewProps) {
@@ -36,12 +42,22 @@ export function SelectedPreview({
   const coords = overrideCoords ?? location.coords;
   const weatherQuery = useWeatherQueryResult(coords);
   const weather = weatherQuery.data;
+  const placeQuery = usePlaceQueryResult(coords);
+  const place = placeQuery.data;
   const shouldWaitForLocation =
     !overrideCoords && location.status === "loading";
 
+  const displayLabel =
+    overrideLabel ??
+    place?.label ??
+    `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}`;
+  const subtitle = displayLabel
+    ? `시간대별 기온 · ${displayLabel}`
+    : "시간대별 기온";
+
   return (
     <section className="space-y-3">
-      <SectionTitle title="Detail" subtitle="시간대별 기온" />
+      <SectionTitle className="text-xl" title="Detail" subtitle={subtitle} />
       <Card className="w-full min-w-0 overflow-hidden p-4">
         {resolvingStatus === "loading" ? (
           <div className="text-sm text-slate-700">장소 좌표 찾는 중...</div>
@@ -98,6 +114,13 @@ export function SelectedPreview({
             해당 장소의 정보가 제공되지 않습니다.
           </div>
         )}
+
+        {import.meta.env.DEV ? (
+          <div className="mt-3 text-[11px] text-slate-600">
+            debug: source={overrideCoords ? "search" : "location"} / coords=
+            {coords.lat.toFixed(4)},{coords.lon.toFixed(4)}
+          </div>
+        ) : null}
       </Card>
     </section>
   );

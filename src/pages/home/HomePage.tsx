@@ -119,6 +119,7 @@ export function HomePage() {
         <div className="min-w-0">
           <SelectedPreview
             coords={selectedCoords}
+            label={selectedLabel}
             resolvingStatus={geocodeStatus}
             resolvingMessage={geocodeMessage}
           />
