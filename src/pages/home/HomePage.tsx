@@ -105,13 +105,16 @@ export function HomePage() {
             favorites={favorites.favorites}
             selectedPlaceId={selectedPlaceId}
             onSelect={(fav) => {
-              setSelectedLabel(fav.label);
+              setSelectedLabel(fav.alias ?? fav.label);
               setSelectedCoords(fav.coords);
               setSelectedPlaceId(fav.placeId);
               setGeocodeStatus("success");
               setGeocodeMessage(undefined);
             }}
             onRemove={(placeId) => favorites.removeFavorite(placeId)}
+            onUpdateAlias={(placeId, alias) =>
+              favorites.updateAlias(placeId, alias)
+            }
           />
         </div>
         <div className="min-w-0 lg:pt-[34px]">

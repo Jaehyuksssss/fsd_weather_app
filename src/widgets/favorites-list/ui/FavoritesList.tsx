@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import type { Favorite } from "../../../entities/favorite/model/types";
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
 import { Card, EmptyState, SectionTitle } from "../../../shared/ui";
@@ -7,6 +9,7 @@ type FavoritesListProps = {
   selectedPlaceId?: string;
   onSelect?: (favorite: Favorite) => void;
   onRemove?: (placeId: string) => void;
+  onUpdateAlias?: (placeId: string, alias?: string) => void;
 };
 
 function FavoriteCard({
@@ -14,14 +17,19 @@ function FavoriteCard({
   isSelected,
   onSelect,
   onRemove,
+  onUpdateAlias,
 }: {
   favorite: Favorite;
   isSelected: boolean;
   onSelect?: (favorite: Favorite) => void;
   onRemove?: (placeId: string) => void;
+  onUpdateAlias?: (placeId: string, alias?: string) => void;
 }) {
   const weatherQuery = useWeatherQueryResult(favorite.coords);
   const weather = weatherQuery.data;
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftAlias, setDraftAlias] = useState(favorite.alias ?? "");
 
   return (
     <Card
@@ -39,7 +47,9 @@ function FavoriteCard({
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="text-sm font-semibold">{favorite.label}</div>
+            <div className="text-sm font-semibold">
+              {favorite.alias ?? favorite.label}
+            </div>
             <div className="mt-1 text-xs text-slate-600">
               {weatherQuery.isLoading
                 ? "날씨 불러오는 중..."
@@ -64,7 +74,37 @@ function FavoriteCard({
       </button>
 
       <div className="mt-3 flex items-center justify-between gap-2">
-        <div />
+        {isEditing ? (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <input
+              value={draftAlias}
+              onChange={(e) => setDraftAlias(e.target.value)}
+              placeholder="별칭"
+              className="h-9 w-full min-w-0 rounded-lg border border-black/10 bg-black/[0.03] px-3 text-sm text-slate-900 placeholder:text-slate-500 outline-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  onUpdateAlias?.(favorite.placeId, draftAlias);
+                  setIsEditing(false);
+                } else if (e.key === "Escape") {
+                  setDraftAlias(favorite.alias ?? "");
+                  setIsEditing(false);
+                }
+              }}
+              onBlur={() => {
+                onUpdateAlias?.(favorite.placeId, draftAlias);
+                setIsEditing(false);
+              }}
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
+            onClick={() => setIsEditing(true)}
+          >
+            별칭
+          </button>
+        )}
         <button
           type="button"
           className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
@@ -82,6 +122,7 @@ export function FavoritesList({
   selectedPlaceId,
   onSelect,
   onRemove,
+  onUpdateAlias,
 }: FavoritesListProps) {
   return (
     <section className="space-y-3">
@@ -100,6 +141,7 @@ export function FavoritesList({
               isSelected={selectedPlaceId === fav.placeId}
               onSelect={onSelect}
               onRemove={onRemove}
+              onUpdateAlias={onUpdateAlias}
             />
           ))
         )}

@@ -15,6 +15,7 @@ export function useFavorites(): Readonly<{
     coords: CoordsLatLon;
   }) => AddResult;
   removeFavorite: (placeId: string) => void;
+  updateAlias: (placeId: string, alias?: string) => void;
 }> {
   const [favorites, setFavorites] = useState<readonly Favorite[]>(() =>
     favoritesRepo.load()
@@ -59,8 +60,16 @@ export function useFavorites(): Readonly<{
     [reload]
   );
 
+  const updateAlias = useCallback(
+    (placeId: string, alias?: string) => {
+      favoritesRepo.updateAlias(placeId, alias);
+      reload();
+    },
+    [reload]
+  );
+
   return useMemo(
-    () => ({ favorites, isFavorite, addFavorite, removeFavorite }),
-    [addFavorite, favorites, isFavorite, removeFavorite]
+    () => ({ favorites, isFavorite, addFavorite, removeFavorite, updateAlias }),
+    [addFavorite, favorites, isFavorite, removeFavorite, updateAlias]
   );
 }

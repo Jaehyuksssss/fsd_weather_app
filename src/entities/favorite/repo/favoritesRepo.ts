@@ -8,6 +8,7 @@ type FavoriteDraft = {
   placeId: string;
   label: string;
   coords: CoordsLatLon;
+  alias?: string;
 };
 
 function isNumber(value: unknown): value is number {
@@ -77,6 +78,7 @@ export const favoritesRepo = {
     const next: Favorite = {
       placeId: draft.placeId,
       label: draft.label,
+      alias: draft.alias,
       coords: draft.coords,
       createdAt: new Date().toISOString(),
     };
@@ -88,5 +90,18 @@ export const favoritesRepo = {
   remove(placeId: string): void {
     const items = read();
     write(items.filter((f) => f.placeId !== placeId));
+  },
+
+  updateAlias(placeId: string, alias?: string): void {
+    const items = read();
+    const next = items.map((f) => {
+      if (f.placeId !== placeId) return f;
+      const normalized = alias?.trim();
+      return {
+        ...f,
+        alias: normalized && normalized.length > 0 ? normalized : undefined,
+      };
+    });
+    write(next);
   },
 } as const;
