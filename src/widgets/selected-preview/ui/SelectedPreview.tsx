@@ -75,16 +75,18 @@ export function SelectedPreview({
                   >
                     <div
                       className={[
-                        "text-[10px] leading-4 text-slate-500",
+                        "text-[12px] font-semibold leading-4 text-slate-700",
                         showDay ? "" : "opacity-0",
                       ].join(" ")}
                     >
                       {formatMonthDay(h.timeISO)}
                     </div>
-                    <div className="text-[11px] leading-4 text-slate-600">
+                    <div className="mt-1 text-[11px] leading-4 text-slate-600">
                       {formatTime(h.timeISO)}
                     </div>
-                    <div className="mt-1 text-sm font-semibold">{h.tempC}°</div>
+                    <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+                      {h.tempC}°
+                    </div>
                   </div>
                 );
               })}
