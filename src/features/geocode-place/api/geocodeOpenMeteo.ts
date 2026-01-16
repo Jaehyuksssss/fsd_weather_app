@@ -120,9 +120,14 @@ export async function geocodeOpenMeteo(
       lat: picked.latitude,
       lon: picked.longitude,
     };
-    writeCached(label, coords); // label 기준 success only
+    writeCached(label, coords);
     return coords;
   }
 
   return null;
 }
+
+export const geocodeCache = {
+  read: readCached,
+  write: writeCached,
+} as const;

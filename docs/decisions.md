@@ -73,3 +73,20 @@
 - **비용**:
   - IP 기반 위치는 정확도가 낮아 오차가 발생할 수 있음(“대략 위치” 표기 필요)
   - 외부 의존성 증가(IP geolocation API)
+
+---
+
+## 2026-01-16 — 검색 라벨 → 좌표 지오코딩 전략(Open‑Meteo → Nominatim fallback + 캐싱)
+
+- **결정**:
+  - 검색 선택된 `label`을 좌표로 변환할 때, 1차로 **Open‑Meteo geocoding(search)** 를 사용
+  - 결과가 없으면 2차로 **Nominatim(OSS) geocoding** 을 fallback으로 사용
+  - 성공한 경우만 `localStorage`에 `label → coords`를 캐싱해서 반복 호출을 줄임
+- **이유**:
+  - `korea_districts.json`의 행정구역/법정동 문자열은 Open‑Meteo 데이터에서 누락되는 경우가 있어 “없음” 비율을 낮출 필요가 있음
+  - 과제 범위에서 빠르게 커버리지를 확보하고, 사용자 경험을 안정화하기 위함
+- **비용**:
+  - 외부 의존성 증가(추가 지오코딩 공급자)
+  - Nominatim은 사용 정책/요청량 제한이 있어 남용 방지(캐싱/선택 시에만 호출)가 필요함
+
+---

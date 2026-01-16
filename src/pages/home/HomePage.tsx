@@ -5,7 +5,7 @@ import { SelectedPreview } from "../../widgets/selected-preview";
 import { SelectedPlaceCard } from "../../widgets/selected-place-card";
 import { useState } from "react";
 import type { CoordsLatLon, Place } from "../../entities/place/model/types";
-import { geocodeOpenMeteo } from "../../features/geocode-place/api/geocodeOpenMeteo";
+import { geocodePlace } from "../../features/geocode-place/api/geocodePlace";
 
 export function HomePage() {
   const [selectedCoords, setSelectedCoords] = useState<
@@ -35,7 +35,7 @@ export function HomePage() {
           setGeocodeMessage(undefined);
           setSelectedCoords(undefined);
 
-          geocodeOpenMeteo(place.label)
+          geocodePlace(place.label)
             .then((coords) => {
               if (!coords) {
                 setGeocodeStatus("error");
