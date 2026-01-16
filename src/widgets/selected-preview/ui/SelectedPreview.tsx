@@ -1,53 +1,55 @@
+import { useDetectLocation } from "../../../features/detect-location/model/useDetectLocation";
+import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
 import { Card, SectionTitle } from "../../../shared/ui";
 
-type SelectedPreviewData = {
-  name: string;
-  temperature: number;
-  condition: string;
-};
-
-const dummySelected: SelectedPreviewData = {
-  name: "Seoul",
-  temperature: 22,
-  condition: "Cloudy",
-};
+function formatHourLabel(timeISO: string): string {
+  // Open-Meteo hourly time is usually "YYYY-MM-DDTHH:MM"
+  return timeISO.slice(11, 16);
+}
 
 export function SelectedPreview() {
+  const location = useDetectLocation();
+  const weatherQuery = useWeatherQueryResult(location.coords);
+  const weather = weatherQuery.data;
+
   return (
     <section className="space-y-3">
-      <SectionTitle title="Preview" subtitle="선택한 장소" />
+      <SectionTitle title="Detail" subtitle="시간대별 기온" />
       <Card className="overflow-hidden p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="text-sm font-semibold">{dummySelected.name}</div>
-            <div className="mt-1 text-xs text-slate-600">
-              {dummySelected.condition}
-            </div>
+        {location.status === "loading" || location.status === "idle" ? (
+          <div className="text-sm text-slate-700">위치 확인 중...</div>
+        ) : location.status === "error" ? (
+          <div className="text-sm text-slate-700">
+            위치 확인 실패 ({location.reason ?? "UNKNOWN"})
           </div>
-          <div className="text-4xl font-semibold tracking-tight">
-            {dummySelected.temperature}°
+        ) : weatherQuery.isLoading ? (
+          <div className="text-sm text-slate-700">날씨 불러오는 중...</div>
+        ) : weatherQuery.isError ? (
+          <div className="text-sm text-slate-700">
+            날씨 연동 실패{" "}
+            {weatherQuery.error instanceof Error
+              ? `(${weatherQuery.error.message})`
+              : ""}
           </div>
-        </div>
-
-        <div className="mt-4">
-          <div className="h-40 w-full rounded-2xl border border-black/10 bg-black/[0.03] p-3">
-            <div className="h-full w-full rounded-xl bg-black/[0.03]" />
+        ) : weather ? (
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1">
+            {weather.hourly.slice(0, 12).map((h) => (
+              <div
+                key={h.timeISO}
+                className="shrink-0 rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2"
+              >
+                <div className="text-[11px] text-slate-600">
+                  {formatHourLabel(h.timeISO)}
+                </div>
+                <div className="mt-1 text-sm font-semibold">{h.tempC}°</div>
+              </div>
+            ))}
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            <div className="rounded-xl border border-black/10 bg-black/[0.03] p-3">
-              <div className="text-[11px] text-slate-600">습도</div>
-              <div className="mt-1 text-sm font-semibold">73%</div>
-            </div>
-            <div className="rounded-xl border border-black/10 bg-black/[0.03] p-3">
-              <div className="text-[11px] text-slate-600">바람</div>
-              <div className="mt-1 text-sm font-semibold">1 m/s</div>
-            </div>
-            <div className="rounded-xl border border-black/10 bg-black/[0.03] p-3">
-              <div className="text-[11px] text-slate-600">강수</div>
-              <div className="mt-1 text-sm font-semibold">0 mm</div>
-            </div>
+        ) : (
+          <div className="text-sm text-slate-700">
+            해당 장소의 정보가 제공되지 않습니다.
           </div>
-        </div>
+        )}
       </Card>
     </section>
   );
