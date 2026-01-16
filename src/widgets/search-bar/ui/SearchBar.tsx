@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useId, useMemo, useRef, useState } from "react";
 
 import { buildPlaceId, type Place } from "../../../entities/place/model/types";
@@ -7,13 +8,26 @@ import { Card } from "../../../shared/ui";
 type SearchBarProps = {
   className?: string;
   onSelect?: (place: Place) => void;
+  /**
+   * 검색 결과 미리보기(선택된 장소 요약 등)를 SearchBar 카드 내부에 "접히는 패널"로 렌더하기 위한 슬롯.
+   */
+  panel?: ReactNode;
+  /**
+   * panel이 열려있는지 여부. false이면 panel 영역을 0 height로 접는다(애니메이션).
+   */
+  panelOpen?: boolean;
 };
 
 function clampIndex(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-export function SearchBar({ className, onSelect }: SearchBarProps) {
+export function SearchBar({
+  className,
+  onSelect,
+  panel,
+  panelOpen,
+}: SearchBarProps) {
   const listboxId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -43,13 +57,12 @@ export function SearchBar({ className, onSelect }: SearchBarProps) {
     inputRef.current?.focus();
   }
 
+  const isPanelOpen = Boolean(panel) && Boolean(panelOpen);
+  const isExpanded = showList || isPanelOpen;
+
   return (
     <Card
-      className={[
-        "relative isolate px-4 py-3",
-        showList ? "z-50" : "z-0",
-        className,
-      ]
+      className={["relative isolate overflow-hidden px-4 py-3", className]
         .filter(Boolean)
         .join(" ")}
     >
@@ -118,44 +131,65 @@ export function SearchBar({ className, onSelect }: SearchBarProps) {
               setTimeout(() => setIsOpen(false), 100);
             }}
           />
+        </div>
+      </div>
 
-          {showList ? (
-            <div
-              id={listboxId}
-              role="listbox"
-              className="absolute left-0 right-0 top-full mt-2 z-50 overflow-hidden rounded-xl border border-black/10 bg-[#E9E8D4] shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
-            >
-              <ul className="max-h-[60vh] overflow-auto py-1">
-                {suggestions.map((item, idx) => {
-                  const isActive = idx === clampedActiveIndex;
-                  return (
-                    <li key={item.raw}>
-                      <button
-                        id={`${listboxId}-opt-${idx}`}
-                        role="option"
-                        aria-selected={isActive}
-                        type="button"
-                        className={[
-                          "flex w-full items-center justify-between px-3 py-2 text-left text-sm",
-                          isActive ? "bg-black/5" : "hover:bg-black/5",
-                        ].join(" ")}
-                        onMouseDown={(ev) => {
-                          ev.preventDefault();
-                        }}
-                        onMouseEnter={() => setActiveIndex(idx)}
-                        onClick={() => selectLabel(item.label)}
-                      >
-                        <span className="text-slate-900">{item.label}</span>
-                        <span className="text-[11px] text-slate-500">
-                          Enter
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ) : null}
+      {/* Expandable area (Naver-style): search box "stretches" and contains list/panel inside the same card */}
+      <div
+        className={[
+          "grid transition-[grid-template-rows] duration-200 ease-out",
+          isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        ].join(" ")}
+      >
+        <div className="overflow-hidden">
+          {/* full-bleed divider + content (border only, no separated "box") */}
+          <div className="-mx-4 border-t border-black/10">
+            {showList ? (
+              <div id={listboxId} role="listbox">
+                <ul className="max-h-[60vh] overflow-auto divide-y divide-black/10">
+                  {suggestions.map((item, idx) => {
+                    const isActive = idx === clampedActiveIndex;
+                    return (
+                      <li key={item.raw}>
+                        <button
+                          id={`${listboxId}-opt-${idx}`}
+                          role="option"
+                          aria-selected={isActive}
+                          type="button"
+                          className={[
+                            "flex w-full items-center justify-between px-4 py-3 text-left text-sm",
+                            isActive
+                              ? "bg-black/[0.04]"
+                              : "hover:bg-black/[0.04]",
+                          ].join(" ")}
+                          onMouseDown={(ev) => {
+                            // prevent blur before click
+                            ev.preventDefault();
+                          }}
+                          onMouseEnter={() => setActiveIndex(idx)}
+                          onClick={() => selectLabel(item.label)}
+                        >
+                          <span className="text-slate-900">{item.label}</span>
+                          <span className="text-[11px] text-slate-500">
+                            Enter
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : panel ? (
+              <div
+                className={[
+                  "px-4 py-3 transition-opacity duration-200",
+                  isPanelOpen ? "opacity-100" : "opacity-0",
+                ].join(" ")}
+              >
+                {panel}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </Card>

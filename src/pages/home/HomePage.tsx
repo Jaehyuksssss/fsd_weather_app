@@ -2,7 +2,7 @@ import { SearchBar } from "../../widgets/search-bar";
 import { FavoritesList } from "../../widgets/favorites-list";
 import { MyLocationCard } from "../../widgets/my-location-card";
 import { SelectedPreview } from "../../widgets/selected-preview";
-import { SelectedPlaceCard } from "../../widgets/selected-place-card";
+import { SelectedPlaceInline } from "../../widgets/selected-place-card";
 import { useState } from "react";
 import type { CoordsLatLon, Place } from "../../entities/place/model/types";
 import { buildPlaceId } from "../../entities/place/model/types";
@@ -36,6 +36,46 @@ export function HomePage() {
       </header>
 
       <SearchBar
+        panelOpen={Boolean(selectedLabel) || geocodeStatus !== "idle"}
+        panel={
+          selectedLabel || geocodeStatus !== "idle" ? (
+            <SelectedPlaceInline
+              label={selectedLabel ?? "선택한 장소"}
+              coords={selectedCoords}
+              resolvingStatus={geocodeStatus}
+              resolvingMessage={geocodeMessage}
+              actions={
+                selectedCoords && selectedLabel ? (
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium text-slate-700 hover:bg-black/10"
+                      onClick={() => {
+                        const placeId =
+                          selectedPlaceId ?? buildPlaceId(selectedLabel);
+                        const res = favorites.addFavorite({
+                          placeId,
+                          label: selectedLabel,
+                          coords: selectedCoords,
+                        });
+                        if (!res.ok) {
+                          setGeocodeStatus("error");
+                          setGeocodeMessage(
+                            res.reason === "MAX"
+                              ? "즐겨찾기는 최대 6개까지 가능합니다."
+                              : "이미 즐겨찾기에 있어요."
+                          );
+                        }
+                      }}
+                    >
+                      즐겨찾기 추가
+                    </button>
+                  </div>
+                ) : null
+              }
+            />
+          ) : null
+        }
         onSelect={(place: Place) => {
           setSelectedLabel(place.label);
           setSelectedPlaceId(place.placeId);
@@ -60,44 +100,6 @@ export function HomePage() {
             });
         }}
       />
-
-      {selectedLabel || geocodeStatus !== "idle" ? (
-        <SelectedPlaceCard
-          label={selectedLabel ?? "선택한 장소"}
-          coords={selectedCoords}
-          resolvingStatus={geocodeStatus}
-          resolvingMessage={geocodeMessage}
-          actions={
-            selectedCoords && selectedLabel ? (
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium text-slate-700 hover:bg-black/10"
-                  onClick={() => {
-                    const placeId =
-                      selectedPlaceId ?? buildPlaceId(selectedLabel);
-                    const res = favorites.addFavorite({
-                      placeId,
-                      label: selectedLabel,
-                      coords: selectedCoords,
-                    });
-                    if (!res.ok) {
-                      setGeocodeStatus("error");
-                      setGeocodeMessage(
-                        res.reason === "MAX"
-                          ? "즐겨찾기는 최대 6개까지 가능합니다."
-                          : "이미 즐겨찾기에 있어요."
-                      );
-                    }
-                  }}
-                >
-                  즐겨찾기 추가
-                </button>
-              </div>
-            ) : null
-          }
-        />
-      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="min-w-0 space-y-6">
