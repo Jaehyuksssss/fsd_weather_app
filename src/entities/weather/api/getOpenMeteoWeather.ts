@@ -79,6 +79,26 @@ function findHourlyTempForCurrent(
   return undefined;
 }
 
+function findHourlyStartIndexForNow(
+  currentTimeISO: string | undefined,
+  hourly: readonly { timeISO: string; tempC: number }[]
+): number {
+  if (!currentTimeISO) return 0;
+  const hourKey = currentTimeISO.slice(0, 13);
+
+  // Prefer exact same hour
+  for (let i = 0; i < hourly.length; i += 1) {
+    if (hourly[i].timeISO.slice(0, 13) === hourKey) return i;
+  }
+
+  // Fallback: first item after current time
+  for (let i = 0; i < hourly.length; i += 1) {
+    if (hourly[i].timeISO > currentTimeISO) return i;
+  }
+
+  return 0;
+}
+
 export async function getOpenMeteoWeather(
   input: LatLonInput
 ): Promise<WeatherModel | null> {
@@ -104,7 +124,8 @@ export async function getOpenMeteoWeather(
     data.hourly?.time ?? [],
     data.hourly?.temperature_2m
   );
-  const hourly = hourlyAll.slice(0, 12);
+  const startIdx = findHourlyStartIndexForNow(data.current?.time, hourlyAll);
+  const hourly = hourlyAll.slice(startIdx, startIdx + 12);
 
   const { min, max } = pickTodayMinMax(data.daily);
   const minTempC = min ?? currentTempC;

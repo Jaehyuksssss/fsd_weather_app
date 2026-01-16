@@ -1,7 +1,7 @@
-import { SearchBar } from '../../widgets/search-bar'
-import { FavoritesList } from '../../widgets/favorites-list'
-import { MyLocationCard } from '../../widgets/my-location-card'
-import { SelectedPreview } from '../../widgets/selected-preview'
+import { SearchBar } from "../../widgets/search-bar";
+import { FavoritesList } from "../../widgets/favorites-list";
+import { MyLocationCard } from "../../widgets/my-location-card";
+import { SelectedPreview } from "../../widgets/selected-preview";
 
 export function HomePage() {
   return (
@@ -14,16 +14,14 @@ export function HomePage() {
       <SearchBar />
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <MyLocationCard />
           <FavoritesList />
         </div>
-        <div className="lg:pt-[34px]">
+        <div className="min-w-0 lg:pt-[34px]">
           <SelectedPreview />
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-
