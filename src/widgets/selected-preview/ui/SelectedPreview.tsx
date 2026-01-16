@@ -1,6 +1,6 @@
-import { useDetectLocation } from "../../../features/detect-location/model/useDetectLocation";
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
 import { Card, SectionTitle } from "../../../shared/ui";
+import { useDetectLocation } from "../../../features/detect-location/model/useDetectLocation";
 
 function formatHourLabel(timeISO: string): string {
   // Open-Meteo hourly time is usually "YYYY-MM-DDTHH:MM"
@@ -20,7 +20,16 @@ export function SelectedPreview() {
           <div className="text-sm text-slate-700">위치 확인 중...</div>
         ) : location.status === "error" ? (
           <div className="text-sm text-slate-700">
-            위치 확인 실패 ({location.reason ?? "UNKNOWN"})
+            <div className="mb-2">
+              위치 확인 실패 ({location.reason ?? "UNKNOWN"})
+            </div>
+            <button
+              type="button"
+              onClick={location.refetch}
+              className="inline-flex items-center justify-center rounded-md bg-black/5 px-3 py-1.5 text-xs font-medium hover:bg-black/10"
+            >
+              다시 시도
+            </button>
           </div>
         ) : weatherQuery.isLoading ? (
           <div className="text-sm text-slate-700">날씨 불러오는 중...</div>

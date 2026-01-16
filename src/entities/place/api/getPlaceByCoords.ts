@@ -1,49 +1,44 @@
 import { buildPlaceId, type CoordsLatLon, type Place } from "../model/types";
 import { buildQuery, fetchJson } from "../../../shared/api/openMeteoClient";
 
-type OpenMeteoReverseResult = {
-  name: string;
-  admin1?: string;
-  admin2?: string;
-  country?: string;
-  latitude: number;
-  longitude: number;
-};
-
-type OpenMeteoReverseResponse = {
-  results?: OpenMeteoReverseResult[];
+type BigDataCloudReverseResponse = {
+  city?: string;
+  locality?: string;
+  principalSubdivision?: string; // 시/도
+  countryName?: string;
 };
 
 function buildReverseGeocodingUrl(coords: CoordsLatLon): string {
-  return `https://geocoding-api.open-meteo.com/v1/reverse${buildQuery({
+  // Reverse geocoding without API key
+  // https://www.bigdatacloud.com/geocoding-apis/free-reverse-geocode-to-city-api
+  return `https://api.bigdatacloud.net/data/reverse-geocode-client${buildQuery({
     latitude: coords.lat,
     longitude: coords.lon,
-    language: "ko",
-    count: 1,
+    localityLanguage: "ko",
   })}`;
 }
 
-function buildLabel(result: OpenMeteoReverseResult): string {
-  const parts = [result.name, result.admin1].filter(
+function buildLabel(result: BigDataCloudReverseResponse): string {
+  const primary = result.city ?? result.locality;
+  const parts = [primary, result.principalSubdivision].filter(
     (v): v is string => typeof v === "string" && v.length > 0
   );
   const unique = Array.from(new Set(parts));
   return unique.join(", ");
 }
 
-export async function getPlaceByCoords(coords: CoordsLatLon): Promise<Place | null> {
+export async function getPlaceByCoords(
+  coords: CoordsLatLon
+): Promise<Place | null> {
   const url = buildReverseGeocodingUrl(coords);
-  const data = await fetchJson<OpenMeteoReverseResponse>(url);
+  const data = await fetchJson<BigDataCloudReverseResponse>(url);
 
-  const first = data.results?.[0];
-  if (!first || typeof first.name !== "string" || first.name.length === 0) return null;
+  const label = buildLabel(data);
+  if (label.length === 0) return null;
 
-  const label = buildLabel(first);
   return {
     placeId: buildPlaceId(label),
     label,
     coords,
   };
 }
-
-
