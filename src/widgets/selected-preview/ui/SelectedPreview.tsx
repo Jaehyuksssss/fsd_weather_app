@@ -1,6 +1,7 @@
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
 import { Card, SectionTitle } from "../../../shared/ui";
 import { useResolvedLocation } from "../../../features/detect-location/model/useResolvedLocation";
+import type { CoordsLatLon } from "../../../entities/place/model/types";
 
 function formatMonthDay(timeISO: string): string {
   // "YYYY-MM-DDTHH:MM" -> "MM/DD"
@@ -13,16 +14,42 @@ function formatTime(timeISO: string): string {
   return timeISO.slice(11, 16);
 }
 
-export function SelectedPreview() {
+type SelectedPreviewProps = {
+  /**
+   * 검색 결과 등 "선택된 좌표"가 있으면 해당 좌표로 상세 날씨를 표시한다.
+   * 없으면 현재 위치(ResolvedLocation)를 사용한다.
+   */
+  coords?: CoordsLatLon;
+  /**
+   * 검색 지오코딩 로딩/실패 UI용 상태.
+   */
+  resolvingStatus?: "idle" | "loading" | "error" | "success";
+  resolvingMessage?: string;
+};
+
+export function SelectedPreview({
+  coords: overrideCoords,
+  resolvingStatus = "idle",
+  resolvingMessage,
+}: SelectedPreviewProps) {
   const location = useResolvedLocation();
-  const weatherQuery = useWeatherQueryResult(location.coords);
+  const coords = overrideCoords ?? location.coords;
+  const weatherQuery = useWeatherQueryResult(coords);
   const weather = weatherQuery.data;
+  const shouldWaitForLocation =
+    !overrideCoords && location.status === "loading";
 
   return (
     <section className="space-y-3">
       <SectionTitle title="Detail" subtitle="시간대별 기온" />
       <Card className="w-full min-w-0 overflow-hidden p-4">
-        {location.status === "loading" ? (
+        {resolvingStatus === "loading" ? (
+          <div className="text-sm text-slate-700">장소 좌표 찾는 중...</div>
+        ) : resolvingStatus === "error" ? (
+          <div className="text-sm text-slate-700">
+            {resolvingMessage ?? "선택한 장소를 찾지 못했습니다."}
+          </div>
+        ) : shouldWaitForLocation ? (
           <div className="text-sm text-slate-700">위치 확인 중...</div>
         ) : weatherQuery.isLoading ? (
           <div className="text-sm text-slate-700">날씨 불러오는 중...</div>
@@ -68,6 +95,14 @@ export function SelectedPreview() {
             해당 장소의 정보가 제공되지 않습니다.
           </div>
         )}
+
+        {import.meta.env.DEV ? (
+          <div className="mt-3 text-[11px] text-slate-600">
+            debug: source={overrideCoords ? "search" : "location"} / coords=
+            {coords.lat.toFixed(4)},{coords.lon.toFixed(4)} / status=
+            {weatherQuery.status}/{weatherQuery.fetchStatus}
+          </div>
+        ) : null}
       </Card>
     </section>
   );
