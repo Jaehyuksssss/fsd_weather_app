@@ -11,7 +11,7 @@ const POSITION_OPTIONS_CANDIDATES: readonly PositionOptions[] = [
   { enableHighAccuracy: false, timeout: 1_500, maximumAge: 10 * 60_000 },
   // 2) 기본 시도
   DEFAULT_POSITION_OPTIONS,
-  // 3) 마지막 수단: 정확도↑ + 타임아웃↑
+  // 3) 마지막 수단: 정확도↑ + 타임아웃
   { enableHighAccuracy: true, timeout: 60_000, maximumAge: 0 },
 ] as const;
 

@@ -18,7 +18,10 @@ type GeocodingResponse = {
 const STORAGE_KEY = "geocode:coordsByLabel:v1";
 
 function normalizeLabelForQuery(label: string): string {
-  return label.replace(/-/g, " ").trim();
+  const base = label.replace(/-/g, " ").trim().replace(/\s+/g, " ");
+  // korea_districts 데이터는 종종 "전주시덕진구"처럼 행정단위가 붙어있음 → 사람이 검색하는 형태로 분리
+  // 예: "전주시덕진구" -> "전주시 덕진구"
+  return base.replace(/([도시군구읍면동리])(?=[가-힣])/g, "$1 ");
 }
 
 function isNumber(value: unknown): value is number {
@@ -51,8 +54,10 @@ function readCached(label: string): CoordsLatLon | null {
 
 function writeCached(label: string, coords: CoordsLatLon): void {
   const prev =
-    readJsonFromLocalStorage<Record<string, CoordsLatLon>>(STORAGE_KEY, isCoordsMap) ??
-    {};
+    readJsonFromLocalStorage<Record<string, CoordsLatLon>>(
+      STORAGE_KEY,
+      isCoordsMap
+    ) ?? {};
   writeJsonToLocalStorage(STORAGE_KEY, { ...prev, [label]: coords });
 }
 
@@ -65,30 +70,59 @@ function buildGeocodingUrl(query: string): string {
   })}`;
 }
 
-function pickBestResult(results: readonly GeocodingResult[]): GeocodingResult | null {
+function pickBestResult(
+  results: readonly GeocodingResult[]
+): GeocodingResult | null {
   const kr = results.find((r) => r.country_code === "KR");
   return kr ?? results[0] ?? null;
 }
 
-export async function geocodeOpenMeteo(label: string): Promise<CoordsLatLon | null> {
+function buildCandidateQueries(label: string): readonly string[] {
+  const q = normalizeLabelForQuery(label).replace(/\s+/g, " ").trim();
+  if (q.length === 0) return [];
+
+  const tokens = q.split(" ").filter(Boolean);
+  const candidates: string[] = [];
+
+  // 1) full label
+  candidates.push(q);
+  // 2) drop top-level region (e.g., "전북특별자치도")
+  if (tokens.length >= 2) candidates.push(tokens.slice(1).join(" "));
+  // 3) last 2 tokens (e.g., "전주시 덕진구")
+  if (tokens.length >= 2) candidates.push(tokens.slice(-2).join(" "));
+  // 4) last token (e.g., "덕진구")
+  if (tokens.length >= 1) candidates.push(tokens.slice(-1).join(" "));
+
+  // dedupe, keep order
+  return Array.from(new Set(candidates));
+}
+
+export async function geocodeOpenMeteo(
+  label: string
+): Promise<CoordsLatLon | null> {
   const cached = readCached(label);
   if (cached) return cached;
 
-  const query = normalizeLabelForQuery(label);
-  if (query.length === 0) return null;
+  const queries = buildCandidateQueries(label);
+  if (queries.length === 0) return null;
 
-  const url = buildGeocodingUrl(query);
-  const data = await fetchJson<GeocodingResponse>(url);
-  const results = data.results ?? [];
-  if (results.length === 0) return null;
+  for (const query of queries) {
+    const url = buildGeocodingUrl(query);
+    const data = await fetchJson<GeocodingResponse>(url);
+    const results = data.results ?? [];
+    if (results.length === 0) continue;
 
-  const picked = pickBestResult(results);
-  if (!picked) return null;
-  if (!isNumber(picked.latitude) || !isNumber(picked.longitude)) return null;
+    const picked = pickBestResult(results);
+    if (!picked) continue;
+    if (!isNumber(picked.latitude) || !isNumber(picked.longitude)) continue;
 
-  const coords: CoordsLatLon = { lat: picked.latitude, lon: picked.longitude };
-  writeCached(label, coords); // success only
-  return coords;
+    const coords: CoordsLatLon = {
+      lat: picked.latitude,
+      lon: picked.longitude,
+    };
+    writeCached(label, coords); // label 기준 success only
+    return coords;
+  }
+
+  return null;
 }
-
-

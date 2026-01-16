@@ -20,6 +20,7 @@ export function SearchBar({ className, onSelect }: SearchBarProps) {
   const [value, setValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [isComposing, setIsComposing] = useState(false);
 
   const { suggestions } = useKoreaDistrictSuggestions(value);
 
@@ -83,7 +84,17 @@ export function SearchBar({ className, onSelect }: SearchBarProps) {
             onFocus={() => {
               if (value.trim().length > 0) setIsOpen(true);
             }}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
             onKeyDown={(e) => {
+              // 한글 IME 조합 중 Enter/Arrow 처리하면 "…광역시산"처럼 마지막 조합 글자가 덧붙는 문제가 생길 수 있음
+              if (
+                isComposing ||
+                (e.nativeEvent as unknown as { isComposing?: boolean })
+                  .isComposing
+              ) {
+                return;
+              }
               if (e.key === "ArrowDown") {
                 if (!showList) {
                   setIsOpen(true);
