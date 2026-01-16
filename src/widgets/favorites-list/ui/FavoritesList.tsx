@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import type { Favorite } from "../../../entities/favorite/model/types";
@@ -31,6 +31,28 @@ function FavoriteCard({
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftAlias, setDraftAlias] = useState(favorite.alias ?? "");
+  const aliasWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const saveAndClose = useCallback(() => {
+    onUpdateAlias?.(favorite.placeId, draftAlias);
+    setIsEditing(false);
+  }, [draftAlias, favorite.placeId, onUpdateAlias]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const wrap = aliasWrapRef.current;
+      const target = e.target as Node | null;
+      if (!wrap || !target) return;
+      if (wrap.contains(target)) return;
+      saveAndClose();
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () =>
+      document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [isEditing, saveAndClose]);
 
   return (
     <Card
@@ -87,7 +109,10 @@ function FavoriteCard({
 
       <div className="relative z-10 mt-3 flex items-center justify-between gap-2 pointer-events-auto">
         {isEditing ? (
-          <div className="relative flex min-w-0 flex-1 items-center gap-2">
+          <div
+            ref={aliasWrapRef}
+            className="relative flex min-w-0 flex-1 items-center gap-2"
+          >
             <input
               value={draftAlias}
               onChange={(e) => setDraftAlias(e.target.value)}
@@ -95,17 +120,13 @@ function FavoriteCard({
               className="h-9 w-full min-w-0 rounded-lg border border-black/10 bg-black/[0.03] pl-3 pr-9 text-sm text-slate-900 placeholder:text-slate-500 outline-none"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  onUpdateAlias?.(favorite.placeId, draftAlias);
-                  setIsEditing(false);
+                  saveAndClose();
                 } else if (e.key === "Escape") {
                   setDraftAlias(favorite.alias ?? "");
                   setIsEditing(false);
                 }
               }}
-              onBlur={() => {
-                onUpdateAlias?.(favorite.placeId, draftAlias);
-                setIsEditing(false);
-              }}
+              onBlur={saveAndClose}
             />
             {draftAlias.trim().length > 0 ? (
               <button
@@ -139,9 +160,14 @@ function FavoriteCard({
           <button
             type="button"
             className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
-            onClick={() => setIsEditing(true)}
+            onClick={() => {
+              setDraftAlias(favorite.alias ?? "");
+              setIsEditing(true);
+            }}
           >
-            별칭
+            {favorite.alias && favorite.alias.trim().length > 0
+              ? "별칭 수정"
+              : "별칭"}
           </button>
         )}
         {!isEditing ? (

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { findFavoriteByPlaceId } from "../../entities/favorite/model/selectors";
 import { useFavorites } from "../../entities/favorite/model/useFavorites";
@@ -34,6 +34,29 @@ export function PlacePage() {
 
   const [isEditingAlias, setIsEditingAlias] = useState(false);
   const [draftAlias, setDraftAlias] = useState("");
+  const aliasWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const saveAndCloseAlias = useCallback(() => {
+    if (!favorite) return;
+    favorites.updateAlias(placeId, draftAlias);
+    setIsEditingAlias(false);
+  }, [draftAlias, favorite, favorites, placeId]);
+
+  useEffect(() => {
+    if (!isEditingAlias) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const wrap = aliasWrapRef.current;
+      const target = e.target as Node | null;
+      if (!wrap || !target) return;
+      if (wrap.contains(target)) return;
+      saveAndCloseAlias();
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () =>
+      document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [isEditingAlias, saveAndCloseAlias]);
 
   return (
     <div className="space-y-6">
@@ -102,7 +125,7 @@ export function PlacePage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {isEditingAlias ? (
-                  <div className="relative w-full min-w-0">
+                  <div ref={aliasWrapRef} className="relative w-full min-w-0">
                     <input
                       value={draftAlias}
                       onChange={(e) => setDraftAlias(e.target.value)}
@@ -110,17 +133,13 @@ export function PlacePage() {
                       className="h-9 w-full min-w-0 rounded-lg border border-black/10 bg-black/[0.03] pl-3 pr-9 text-sm text-slate-900 placeholder:text-slate-500 outline-none"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
-                          favorites.updateAlias(placeId, draftAlias);
-                          setIsEditingAlias(false);
+                          saveAndCloseAlias();
                         } else if (e.key === "Escape") {
                           setDraftAlias(favorite.alias ?? "");
                           setIsEditingAlias(false);
                         }
                       }}
-                      onBlur={() => {
-                        favorites.updateAlias(placeId, draftAlias);
-                        setIsEditingAlias(false);
-                      }}
+                      onBlur={saveAndCloseAlias}
                       autoFocus
                     />
                     {draftAlias.trim().length > 0 ? (
