@@ -231,7 +231,7 @@ export function SearchBar({
               </div>
             ) : null}
 
-            <ul className="max-h-[min(40vh,320px)] overflow-auto overscroll-contain px-2 pb-2">
+            <ul className="max-h-[min(40vh,320px)] overflow-auto overscroll-contain px-2 py-2">
               {listItems.map((item, idx) => {
                 const isActive = idx === clampedActiveIndex;
                 return (
@@ -240,95 +240,101 @@ export function SearchBar({
                       id={`${listboxId}-opt-${idx}`}
                       role="option"
                       aria-selected={isActive}
-                      className={[
-                        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm",
-                        isActive ? "bg-black/10" : "hover:bg-black/10",
-                      ].join(" ")}
+                      className="flex w-full items-center gap-3 text-left text-sm"
                       onMouseEnter={() => setActiveIndex(idx)}
                     >
-                      <button
-                        type="button"
-                        className="flex min-w-0 flex-1 items-center gap-3 text-left"
-                        onClick={() => selectLabel(item.label)}
+                      {/* Icon (no hover background) */}
+                      <span
+                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-black/[0.06] text-slate-600"
+                        aria-hidden="true"
                       >
-                        <span
-                          className="grid h-6 w-6 place-items-center rounded-md bg-black/[0.06] text-slate-600"
-                          aria-hidden="true"
-                        >
-                          {item.kind === "recent" ? (
-                            <svg
-                              viewBox="0 0 20 20"
-                              width="14"
-                              height="14"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M10 16.5a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z"
-                                stroke="currentColor"
-                                strokeWidth="1.6"
-                              />
-                              <path
-                                d="M10 5.8v4.3l2.6 1.6"
-                                stroke="currentColor"
-                                strokeWidth="1.6"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              viewBox="0 0 20 20"
-                              width="14"
-                              height="14"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M8.7 14.4a5.7 5.7 0 1 1 0-11.4 5.7 5.7 0 0 1 0 11.4Z"
-                                stroke="currentColor"
-                                strokeWidth="1.6"
-                              />
-                              <path
-                                d="M13 13l4 4"
-                                stroke="currentColor"
-                                strokeWidth="1.6"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                          )}
-                        </span>
+                        {item.kind === "recent" ? (
+                          <svg
+                            viewBox="0 0 20 20"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M10 16.5a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                            />
+                            <path
+                              d="M10 5.8v4.3l2.6 1.6"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            viewBox="0 0 20 20"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M8.7 14.4a5.7 5.7 0 1 1 0-11.4 5.7 5.7 0 0 1 0 11.4Z"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                            />
+                            <path
+                              d="M13 13l4 4"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        )}
+                      </span>
 
-                        <span className="min-w-0 flex-1 truncate text-slate-900">
-                          {item.label}
-                        </span>
-                      </button>
-
-                      {item.kind === "recent" ? (
+                      {/* Hover/active background applies only to the right area (excluding icon). */}
+                      <div
+                        className={[
+                          "flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2",
+                          isActive ? "bg-black/10" : "hover:bg-black/10",
+                        ].join(" ")}
+                      >
                         <button
                           type="button"
-                          className="ml-auto rounded-md px-2 py-1 text-[12px] font-medium text-slate-500 hover:bg-black/[0.06] hover:text-slate-700"
-                          onMouseDown={(ev) => ev.preventDefault()}
-                          onClick={() => {
-                            const next = recentSearches.remove(item.label);
-                            setRecent(next);
-                            setActiveIndex((prev) =>
-                              clampActiveIndex(prev, next.length)
-                            );
-                            if (
-                              next.length === 0 &&
-                              value.trim().length === 0
-                            ) {
-                              setIsOpen(false);
-                              setActiveIndex(-1);
-                            }
-                          }}
+                          className="flex min-w-0 flex-1 items-center text-left"
+                          onClick={() => selectLabel(item.label)}
                         >
-                          삭제
+                          <span className="min-w-0 flex-1 truncate text-slate-900">
+                            {item.label}
+                          </span>
                         </button>
-                      ) : (
-                        <span className="ml-auto" aria-hidden="true" />
-                      )}
+
+                        {item.kind === "recent" ? (
+                          <button
+                            type="button"
+                            className="ml-auto rounded-md px-2 py-1 text-[12px] font-medium text-slate-500 hover:bg-black/[0.06] hover:text-slate-700"
+                            onMouseDown={(ev) => ev.preventDefault()}
+                            onClick={() => {
+                              const next = recentSearches.remove(item.label);
+                              setRecent(next);
+                              setActiveIndex((prev) =>
+                                clampActiveIndex(prev, next.length)
+                              );
+                              if (
+                                next.length === 0 &&
+                                value.trim().length === 0
+                              ) {
+                                setIsOpen(false);
+                                setActiveIndex(-1);
+                              }
+                            }}
+                          >
+                            삭제
+                          </button>
+                        ) : (
+                          <span className="ml-auto" aria-hidden="true" />
+                        )}
+                      </div>
                     </div>
                   </li>
                 );
