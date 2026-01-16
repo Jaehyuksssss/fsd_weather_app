@@ -1,6 +1,6 @@
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
 import { Card, SectionTitle } from "../../../shared/ui";
-import { useDetectLocation } from "../../../features/detect-location/model/useDetectLocation";
+import { useResolvedLocation } from "../../../features/detect-location/model/useResolvedLocation";
 
 function formatHourLabel(timeISO: string): string {
   // Open-Meteo hourly time is usually "YYYY-MM-DDTHH:MM"
@@ -8,7 +8,7 @@ function formatHourLabel(timeISO: string): string {
 }
 
 export function SelectedPreview() {
-  const location = useDetectLocation();
+  const location = useResolvedLocation();
   const weatherQuery = useWeatherQueryResult(location.coords);
   const weather = weatherQuery.data;
 
@@ -16,21 +16,8 @@ export function SelectedPreview() {
     <section className="space-y-3">
       <SectionTitle title="Detail" subtitle="시간대별 기온" />
       <Card className="overflow-hidden p-4">
-        {location.status === "loading" || location.status === "idle" ? (
+        {location.status === "loading" ? (
           <div className="text-sm text-slate-700">위치 확인 중...</div>
-        ) : location.status === "error" ? (
-          <div className="text-sm text-slate-700">
-            <div className="mb-2">
-              위치 확인 실패 ({location.reason ?? "UNKNOWN"})
-            </div>
-            <button
-              type="button"
-              onClick={location.refetch}
-              className="inline-flex items-center justify-center rounded-md bg-black/5 px-3 py-1.5 text-xs font-medium hover:bg-black/10"
-            >
-              다시 시도
-            </button>
-          </div>
         ) : weatherQuery.isLoading ? (
           <div className="text-sm text-slate-700">날씨 불러오는 중...</div>
         ) : weatherQuery.isError ? (

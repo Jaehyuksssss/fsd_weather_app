@@ -57,6 +57,28 @@ function pickTodayMinMax(daily?: OpenMeteoForecastResponse["daily"]): {
   };
 }
 
+function findHourlyTempForCurrent(
+  currentTimeISO: string | undefined,
+  hourly: OpenMeteoForecastResponse["hourly"] | undefined
+): number | undefined {
+  if (!currentTimeISO) return undefined;
+  const time = hourly?.time;
+  const temp = hourly?.temperature_2m;
+  if (!time || !temp) return undefined;
+
+  // hourly time is usually "YYYY-MM-DDTHH:00", current may be "YYYY-MM-DDTHH:MM"
+  const hourKey = currentTimeISO.slice(0, 13);
+  const len = Math.min(time.length, temp.length);
+  for (let i = 0; i < len; i += 1) {
+    const t = time[i];
+    const v = temp[i];
+    if (typeof t === "string" && t.slice(0, 13) === hourKey && isNumber(v)) {
+      return v;
+    }
+  }
+  return undefined;
+}
+
 export async function getOpenMeteoWeather(
   input: LatLonInput
 ): Promise<WeatherModel | null> {
@@ -71,7 +93,11 @@ export async function getOpenMeteoWeather(
 
   const data = await fetchJson<OpenMeteoForecastResponse>(url);
 
-  const currentTempC = data.current?.temperature_2m;
+  const hourlyCurrent = findHourlyTempForCurrent(
+    data.current?.time,
+    data.hourly
+  );
+  const currentTempC = hourlyCurrent ?? data.current?.temperature_2m;
   if (!isNumber(currentTempC)) return null;
 
   const hourlyAll = zipHourly(

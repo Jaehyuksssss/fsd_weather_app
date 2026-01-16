@@ -1,10 +1,10 @@
-import { useDetectLocation } from "../../../features/detect-location/model/useDetectLocation";
+import { useResolvedLocation } from "../../../features/detect-location/model/useResolvedLocation";
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
 import { usePlaceQueryResult } from "../../../entities/place/query/usePlaceQuery";
 import { Card, SectionTitle } from "../../../shared/ui";
 
 export function MyLocationCard() {
-  const location = useDetectLocation();
+  const location = useResolvedLocation();
   const weatherQuery = useWeatherQueryResult(location.coords);
   const weather = weatherQuery.data;
   const placeQuery = usePlaceQueryResult(location.coords);
@@ -14,7 +14,7 @@ export function MyLocationCard() {
     <section className="space-y-3">
       <SectionTitle title="My Location" subtitle="현재 위치 기반" />
       <Card className="p-4">
-        {location.status === "loading" || location.status === "idle" ? (
+        {location.status === "loading" ? (
           <div className="text-sm text-slate-700">
             <div className="mb-2">위치 확인 중...</div>
             <div className="text-[11px] text-slate-600">
@@ -22,28 +22,7 @@ export function MyLocationCard() {
             </div>
             {import.meta.env.DEV ? (
               <div className="mt-3 text-[11px] text-slate-600">
-                debug: secure={String(window.isSecureContext)} / permission=
-                {location.permission ?? "-"}
-              </div>
-            ) : null}
-          </div>
-        ) : location.status === "error" ? (
-          <div className="text-sm text-slate-700">
-            <div className="mb-2">
-              위치 확인 실패 ({location.reason ?? "UNKNOWN"})
-            </div>
-            <button
-              type="button"
-              onClick={location.refetch}
-              className="inline-flex items-center justify-center rounded-md bg-black/5 px-3 py-1.5 text-xs font-medium hover:bg-black/10"
-            >
-              다시 시도
-            </button>
-
-            {import.meta.env.DEV ? (
-              <div className="mt-3 text-[11px] text-slate-600">
-                debug: secure={String(window.isSecureContext)} / permission=
-                {location.permission ?? "-"} / details={location.details ?? "-"}
+                debug: source={location.source} / note={location.note ?? "-"}
               </div>
             ) : null}
           </div>
@@ -72,6 +51,8 @@ export function MyLocationCard() {
                   ? "위치명 불러오는 중..."
                   : placeQuery.isError
                   ? "위치명 불러오기 실패"
+                  : location.source === "ip"
+                  ? "대략 위치 (IP 기반)"
                   : "Open-Meteo"}
               </div>
               <div className="mt-3 text-xs text-slate-600">
