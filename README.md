@@ -12,7 +12,7 @@
 
 ## 데모
 
-- 배포 URL: (추후 작성)
+- 배포 URL: https://app.figmaboy.org/
 
 ## 로컬 실행 방법
 
