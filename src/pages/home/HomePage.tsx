@@ -74,7 +74,8 @@ export function HomePage() {
                   type="button"
                   className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium text-slate-700 hover:bg-black/10"
                   onClick={() => {
-                    const placeId = buildPlaceId(selectedLabel);
+                    const placeId =
+                      selectedPlaceId ?? buildPlaceId(selectedLabel);
                     const res = favorites.addFavorite({
                       placeId,
                       label: selectedLabel,

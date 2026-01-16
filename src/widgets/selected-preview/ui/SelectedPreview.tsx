@@ -1,5 +1,5 @@
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
-import { Card, SectionTitle } from "../../../shared/ui";
+import { Card, SectionTitle, SwipeScroll } from "../../../shared/ui";
 import { useResolvedLocation } from "../../../features/detect-location/model/useResolvedLocation";
 import type { CoordsLatLon } from "../../../entities/place/model/types";
 
@@ -61,37 +61,38 @@ export function SelectedPreview({
               : ""}
           </div>
         ) : weather ? (
-          <div className="-mx-1 max-w-full overflow-x-auto px-1 py-1">
-            <div className="flex min-w-0 gap-2">
-              {weather.hourly.slice(0, 12).map((h, idx, arr) => {
-                const day = h.timeISO.slice(0, 10);
-                const prevDay =
-                  idx > 0 ? arr[idx - 1]?.timeISO.slice(0, 10) : null;
-                const showDay = idx === 0 || day !== prevDay;
-                return (
+          <SwipeScroll
+            className="-mx-1 max-w-full px-1 py-1 snap-x snap-mandatory"
+            dragClassName="flex min-w-0 gap-2"
+          >
+            {weather.hourly.slice(0, 12).map((h, idx, arr) => {
+              const day = h.timeISO.slice(0, 10);
+              const prevDay =
+                idx > 0 ? arr[idx - 1]?.timeISO.slice(0, 10) : null;
+              const showDay = idx === 0 || day !== prevDay;
+              return (
+                <div
+                  key={h.timeISO}
+                  className="shrink-0 w-[92px] snap-start rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2 text-center"
+                >
                   <div
-                    key={h.timeISO}
-                    className="shrink-0 w-[92px] rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2 text-center"
+                    className={[
+                      "text-[12px] font-semibold leading-4 text-slate-700",
+                      showDay ? "" : "opacity-0",
+                    ].join(" ")}
                   >
-                    <div
-                      className={[
-                        "text-[12px] font-semibold leading-4 text-slate-700",
-                        showDay ? "" : "opacity-0",
-                      ].join(" ")}
-                    >
-                      {formatMonthDay(h.timeISO)}
-                    </div>
-                    <div className="mt-1 text-[11px] leading-4 text-slate-600">
-                      {formatTime(h.timeISO)}
-                    </div>
-                    <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-                      {h.tempC}°
-                    </div>
+                    {formatMonthDay(h.timeISO)}
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <div className="mt-1 text-[11px] leading-4 text-slate-600">
+                    {formatTime(h.timeISO)}
+                  </div>
+                  <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+                    {h.tempC}°
+                  </div>
+                </div>
+              );
+            })}
+          </SwipeScroll>
         ) : (
           <div className="text-sm text-slate-700">
             해당 장소의 정보가 제공되지 않습니다.
