@@ -85,12 +85,12 @@ function FavoriteCard({
 
       <div className="relative z-10 mt-3 flex items-center justify-between gap-2 pointer-events-auto">
         {isEditing ? (
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="relative flex min-w-0 flex-1 items-center gap-2">
             <input
               value={draftAlias}
               onChange={(e) => setDraftAlias(e.target.value)}
               placeholder="별칭"
-              className="h-9 w-full min-w-0 rounded-lg border border-black/10 bg-black/[0.03] px-3 text-sm text-slate-900 placeholder:text-slate-500 outline-none"
+              className="h-9 w-full min-w-0 rounded-lg border border-black/10 bg-black/[0.03] pl-3 pr-9 text-sm text-slate-900 placeholder:text-slate-500 outline-none"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   onUpdateAlias?.(favorite.placeId, draftAlias);
@@ -105,6 +105,33 @@ function FavoriteCard({
                 setIsEditing(false);
               }}
             />
+            {draftAlias.trim().length > 0 ? (
+              <button
+                type="button"
+                aria-label="별칭 지우기"
+                className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-slate-500 hover:bg-black/[0.06] hover:text-slate-700"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setDraftAlias("");
+                }}
+              >
+                <svg
+                  viewBox="0 0 20 20"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M5 5l10 10M15 5L5 15"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            ) : null}
           </div>
         ) : (
           <button

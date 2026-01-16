@@ -52,5 +52,3 @@ export const recentSearches = {
     write([]);
   },
 } as const;
-
-

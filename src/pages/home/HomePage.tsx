@@ -3,42 +3,15 @@ import { FavoritesList } from "../../widgets/favorites-list";
 import { MyLocationCard } from "../../widgets/my-location-card";
 import { SelectedPreview } from "../../widgets/selected-preview";
 import { SelectedPlaceInline } from "../../widgets/selected-place-card";
-import { useState } from "react";
-import type { CoordsLatLon, Place } from "../../entities/place/model/types";
-import { buildPlaceId } from "../../entities/place/model/types";
-import { geocodePlace } from "../../features/geocode-place/api/geocodePlace";
 import { useFavorites } from "../../entities/favorite/model/useFavorites";
+import { useSelectPlace } from "../../features/select-place/model/useSelectPlace";
 
 export function HomePage() {
-  const [searchClearRequestId, setSearchClearRequestId] = useState(0);
-  const [selectedCoords, setSelectedCoords] = useState<
-    CoordsLatLon | undefined
-  >(undefined);
-  const [selectedLabel, setSelectedLabel] = useState<string | undefined>(
-    undefined
-  );
-  const [geocodeStatus, setGeocodeStatus] = useState<
-    "idle" | "loading" | "error" | "success"
-  >("idle");
-  const [geocodeMessage, setGeocodeMessage] = useState<string | undefined>(
-    undefined
-  );
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string | undefined>(
-    undefined
-  );
-  const [favoriteActionMessage, setFavoriteActionMessage] = useState<
-    string | undefined
-  >(undefined);
-
   const favorites = useFavorites();
+  const selectPlace = useSelectPlace();
+  const { state } = selectPlace;
 
-  const resolvedSelectedPlaceId =
-    selectedLabel && selectedLabel.length > 0
-      ? selectedPlaceId ?? buildPlaceId(selectedLabel)
-      : undefined;
-  const selectedIsFavorite = resolvedSelectedPlaceId
-    ? favorites.isFavorite(resolvedSelectedPlaceId)
-    : false;
+  const selectedIsFavorite = selectPlace.selectedIsFavorite(favorites);
 
   return (
     <div className="space-y-6">
@@ -48,25 +21,20 @@ export function HomePage() {
       </header>
 
       <SearchBar
-        clearRequestId={searchClearRequestId}
-        onClear={() => {
-          setSelectedCoords(undefined);
-          setSelectedLabel(undefined);
-          setSelectedPlaceId(undefined);
-          setGeocodeStatus("idle");
-          setGeocodeMessage(undefined);
-          setFavoriteActionMessage(undefined);
-        }}
-        panelOpen={Boolean(selectedLabel) || geocodeStatus !== "idle"}
+        clearRequestId={state.searchClearRequestId}
+        onClear={selectPlace.onSearchClear}
+        panelOpen={
+          Boolean(state.selectedLabel) || state.geocodeStatus !== "idle"
+        }
         panel={
-          selectedLabel || geocodeStatus !== "idle" ? (
+          state.selectedLabel || state.geocodeStatus !== "idle" ? (
             <SelectedPlaceInline
-              label={selectedLabel ?? "선택한 장소"}
-              coords={selectedCoords}
-              resolvingStatus={geocodeStatus}
-              resolvingMessage={geocodeMessage}
+              label={state.selectedLabel ?? "선택한 장소"}
+              coords={state.selectedCoords}
+              resolvingStatus={state.geocodeStatus}
+              resolvingMessage={state.geocodeMessage}
               actions={
-                selectedCoords && selectedLabel ? (
+                state.selectedCoords && state.selectedLabel ? (
                   <div className="flex items-center justify-end gap-2">
                     {selectedIsFavorite ? (
                       <div className="text-sm font-medium text-slate-600">
@@ -76,27 +44,9 @@ export function HomePage() {
                       <button
                         type="button"
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-sm font-medium text-slate-700 hover:bg-black/10"
-                        onClick={() => {
-                          const placeId =
-                            resolvedSelectedPlaceId ??
-                            buildPlaceId(selectedLabel);
-                          const res = favorites.addFavorite({
-                            placeId,
-                            label: selectedLabel,
-                            coords: selectedCoords,
-                          });
-                          if (!res.ok) {
-                            setFavoriteActionMessage(
-                              res.reason === "MAX"
-                                ? "즐겨찾기는 최대 6개까지 가능합니다."
-                                : "이미 추가 된 장소에요."
-                            );
-                            return;
-                          }
-
-                          setFavoriteActionMessage(undefined);
-                          setSearchClearRequestId((prev) => prev + 1);
-                        }}
+                        onClick={() =>
+                          selectPlace.onAddSelectedToFavorites(favorites)
+                        }
                       >
                         즐겨찾기 추가
                       </button>
@@ -107,35 +57,12 @@ export function HomePage() {
             />
           ) : null
         }
-        onSelect={(place: Place) => {
-          setSelectedLabel(place.label);
-          setSelectedPlaceId(place.placeId);
-          setGeocodeStatus("loading");
-          setGeocodeMessage(undefined);
-          setSelectedCoords(undefined);
-          setFavoriteActionMessage(undefined);
-
-          geocodePlace(place.label)
-            .then((coords) => {
-              if (!coords) {
-                setGeocodeStatus("error");
-                setGeocodeMessage("선택한 장소를 찾지 못했습니다.");
-                return;
-              }
-              setSelectedCoords(coords);
-              setGeocodeStatus("success");
-            })
-            .catch((e: unknown) => {
-              const message = e instanceof Error ? e.message : String(e);
-              setGeocodeStatus("error");
-              setGeocodeMessage(`장소 좌표 변환 실패 (${message})`);
-            });
-        }}
+        onSelect={selectPlace.onSelectPlace}
       />
 
-      {favoriteActionMessage ? (
+      {state.favoriteActionMessage ? (
         <div className="-mt-2 text-sm font-medium text-white/70">
-          {favoriteActionMessage}
+          {state.favoriteActionMessage}
         </div>
       ) : null}
 
@@ -145,10 +72,10 @@ export function HomePage() {
         </div>
         <div className="min-w-0">
           <SelectedPreview
-            coords={selectedCoords}
-            label={selectedLabel}
-            resolvingStatus={geocodeStatus}
-            resolvingMessage={geocodeMessage}
+            coords={state.selectedCoords}
+            label={state.selectedLabel}
+            resolvingStatus={state.geocodeStatus}
+            resolvingMessage={state.geocodeMessage}
           />
         </div>
       </div>
@@ -156,13 +83,13 @@ export function HomePage() {
       <div className="min-w-0">
         <FavoritesList
           favorites={favorites.favorites}
-          selectedPlaceId={selectedPlaceId}
+          selectedPlaceId={state.selectedPlaceId}
           onSelect={(fav) => {
-            setSelectedLabel(fav.alias ?? fav.label);
-            setSelectedCoords(fav.coords);
-            setSelectedPlaceId(fav.placeId);
-            setGeocodeStatus("success");
-            setGeocodeMessage(undefined);
+            selectPlace.onSelectResolvedPlace({
+              label: fav.alias ?? fav.label,
+              placeId: fav.placeId,
+              coords: fav.coords,
+            });
           }}
           onRemove={(placeId) => favorites.removeFavorite(placeId)}
           onUpdateAlias={(placeId, alias) =>

@@ -3,28 +3,15 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { buildPlaceId, type Place } from "../../../entities/place/model/types";
 import { useKoreaDistrictSuggestions } from "../../../entities/place/lib/useKoreaDistrictSuggestions";
-import { recentSearches } from "../../../entities/place/lib/recentSearches";
+import { recentSearches } from "../../../shared/lib/recentSearches";
 import { Card } from "../../../shared/ui";
 
 type SearchBarProps = {
   className?: string;
   onSelect?: (place: Place) => void;
-  /**
-   * 입력값이 비워지는 경우(예: search input의 clear(X) 버튼) 결과/미리보기 상태를 함께 초기화하기 위한 콜백.
-   */
   onClear?: () => void;
-  /**
-   * 외부에서 SearchBar 입력값을 비워야 할 때 사용하는 트리거.
-   * 값이 변경될 때마다 내부 입력값을 ""로 리셋하고 onClear를 호출한다.
-   */
   clearRequestId?: number;
-  /**
-   * 검색 결과 미리보기(선택된 장소 요약 등)를 SearchBar 카드 내부에 "접히는 패널"로 렌더하기 위한 슬롯.
-   */
   panel?: ReactNode;
-  /**
-   * panel이 열려있는지 여부. false이면 panel 영역을 0 height로 접는다(애니메이션).
-   */
   panelOpen?: boolean;
 };
 
@@ -159,7 +146,6 @@ export function SearchBar({
                 setValue(nextValue);
 
                 if (nextValue.trim().length === 0) {
-                  // show recent searches when available
                   setIsOpen(recent.length > 0);
                   setActiveIndex(-1);
                   onClear?.();
@@ -167,8 +153,6 @@ export function SearchBar({
                 }
 
                 setIsOpen(true);
-                // Do not auto-select the first suggestion.
-                // User must explicitly choose via click or ArrowUp/ArrowDown + Enter.
                 setActiveIndex(-1);
               }}
               onCompositionStart={() => setIsComposing(true)}
@@ -196,7 +180,6 @@ export function SearchBar({
                     clampIndex(clampedActiveIndex - 1, 0, listItems.length - 1)
                   );
                 } else if (e.key === "Enter") {
-                  // Only select when user explicitly highlighted an option.
                   if (!showList || clampedActiveIndex < 0) return;
                   e.preventDefault();
                   const item = active ?? listItems[0];
@@ -207,7 +190,6 @@ export function SearchBar({
                 }
               }}
               onBlur={() => {
-                // allow click selection
                 setTimeout(() => setIsOpen(false), 100);
               }}
             />
@@ -224,7 +206,6 @@ export function SearchBar({
         <div
           className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-black/10 bg-[#E9E8D4] shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
           onMouseDown={(e) => {
-            // keep input focused while interacting with dropdown
             e.preventDefault();
           }}
         >
