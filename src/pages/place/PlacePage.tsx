@@ -191,19 +191,6 @@ export function PlacePage() {
                   </button>
                 )}
               </div>
-
-              {!isEditingAlias ? (
-                <button
-                  type="button"
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
-                  onClick={() => {
-                    favorites.removeFavorite(placeId);
-                    navigate("/", { replace: true });
-                  }}
-                >
-                  즐겨찾기 삭제
-                </button>
-              ) : null}
             </div>
           </Card>
 

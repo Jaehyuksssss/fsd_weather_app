@@ -54,8 +54,3 @@ npm run dev
 - `src/features`: 사용자 행동 단위(위치 탐지, 지오코딩 등)
 - `src/entities`: 도메인 모델/쿼리/저장소(favorite, place, weather)
 - `src/shared`: 공용 UI/유틸/클라이언트
-
-## 단점/대신 비용
-
-- **FSD 분리**: 파일 수가 늘고, 초기 탐색 비용이 있습니다.
-- **외부 API 다중 의존(Open‑Meteo + Nominatim)**: 장애/정책 변경 시 교체 비용이 생깁니다(캐싱으로 호출량 완화).
