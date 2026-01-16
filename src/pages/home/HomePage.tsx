@@ -95,6 +95,9 @@ export function HomePage() {
           onUpdateAlias={(placeId, alias) =>
             favorites.updateAlias(placeId, alias)
           }
+          onReorder={(placeId, toIndex) =>
+            favorites.reorderFavorite(placeId, toIndex)
+          }
         />
       </div>
     </div>

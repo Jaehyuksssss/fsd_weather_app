@@ -16,6 +16,7 @@ export function useFavorites(): Readonly<{
   }) => AddResult;
   removeFavorite: (placeId: string) => void;
   updateAlias: (placeId: string, alias?: string) => void;
+  reorderFavorite: (placeId: string, toIndex: number) => void;
 }> {
   const [favorites, setFavorites] = useState<readonly Favorite[]>(() =>
     favoritesRepo.load()
@@ -68,8 +69,30 @@ export function useFavorites(): Readonly<{
     [reload]
   );
 
+  const reorderFavorite = useCallback(
+    (placeId: string, toIndex: number) => {
+      favoritesRepo.reorder(placeId, toIndex);
+      reload();
+    },
+    [reload]
+  );
+
   return useMemo(
-    () => ({ favorites, isFavorite, addFavorite, removeFavorite, updateAlias }),
-    [addFavorite, favorites, isFavorite, removeFavorite, updateAlias]
+    () => ({
+      favorites,
+      isFavorite,
+      addFavorite,
+      removeFavorite,
+      updateAlias,
+      reorderFavorite,
+    }),
+    [
+      addFavorite,
+      favorites,
+      isFavorite,
+      removeFavorite,
+      reorderFavorite,
+      updateAlias,
+    ]
   );
 }

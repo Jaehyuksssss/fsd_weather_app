@@ -132,7 +132,10 @@ export function useSelectPlace(): Readonly<{
 
       if (!label || !coords || !placeId) return;
       if (favorites.isFavorite(placeId)) {
-        setState((prev) => ({ ...prev, favoriteActionMessage: "이미 즐겨찾기에 있어요." }));
+        setState((prev) => ({
+          ...prev,
+          favoriteActionMessage: "이미 즐겨찾기에 있어요.",
+        }));
         return;
       }
 
@@ -142,7 +145,7 @@ export function useSelectPlace(): Readonly<{
           ...prev,
           favoriteActionMessage:
             res.reason === "MAX"
-              ? "즐겨찾기는 최대 6개까지 가능합니다."
+              ? "즐겨찾기는 최대 6개까지 가능해요."
               : "이미 즐겨찾기에 있어요.",
         }));
         return;
@@ -167,5 +170,3 @@ export function useSelectPlace(): Readonly<{
     onAddSelectedToFavorites,
   };
 }
-
-

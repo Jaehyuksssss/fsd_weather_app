@@ -72,25 +72,33 @@ export function PlacePage() {
 
       <SectionTitle title="Detail" subtitle="즐겨찾기 상세" />
 
-      <Card className="p-4">
-        {placeId.length === 0 ? (
+      {placeId.length === 0 ? (
+        <Card className="p-4">
           <ErrorState
             title="잘못된 경로입니다."
             description="placeId가 없습니다."
           />
-        ) : !favorite ? (
+        </Card>
+      ) : !favorite ? (
+        <Card className="p-4">
           <EmptyState
             title="즐겨찾기에서 해당 장소를 찾지 못했습니다."
             description="즐겨찾기 목록에서 다시 선택해 주세요."
           />
-        ) : !coords ? (
+        </Card>
+      ) : !coords ? (
+        <Card className="p-4">
           <EmptyState
             title="좌표 정보가 없습니다."
             description="즐겨찾기에서 삭제 후 다시 추가해 주세요."
           />
-        ) : weatherQuery.isLoading ? (
+        </Card>
+      ) : weatherQuery.isLoading ? (
+        <Card className="p-4">
           <div className="text-sm text-slate-700">날씨 불러오는 중...</div>
-        ) : weatherQuery.isError ? (
+        </Card>
+      ) : weatherQuery.isError ? (
+        <Card className="p-4">
           <ErrorState
             title="날씨 연동 실패"
             description={
@@ -100,8 +108,11 @@ export function PlacePage() {
             }
             onRetry={() => weatherQuery.refetch()}
           />
-        ) : weather ? (
-          <div className="space-y-4">
+        </Card>
+      ) : weather ? (
+        <div className="space-y-3">
+          {/* Summary */}
+          <Card className="p-4">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-slate-900">
@@ -112,8 +123,7 @@ export function PlacePage() {
                     {favorite.label}
                   </div>
                 ) : null}
-                <div className="mt-1 text-xs text-slate-600"></div>
-                <div className="mt-1 text-xs text-slate-600">
+                <div className="mt-2 text-xs font-medium text-slate-600">
                   최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
                 </div>
               </div>
@@ -122,7 +132,7 @@ export function PlacePage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-black/10 pt-4">
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {isEditingAlias ? (
                   <div ref={aliasWrapRef} className="relative w-full min-w-0">
@@ -181,10 +191,32 @@ export function PlacePage() {
                   </button>
                 )}
               </div>
-            </div>
 
-            <div className="text-sm font-semibold text-slate-900">시간대별</div>
+              {!isEditingAlias ? (
+                <button
+                  type="button"
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-black/10 bg-black/5 px-3 text-xs font-medium text-slate-700 hover:bg-black/10"
+                  onClick={() => {
+                    favorites.removeFavorite(placeId);
+                    navigate("/", { replace: true });
+                  }}
+                >
+                  즐겨찾기 삭제
+                </button>
+              ) : null}
+            </div>
+          </Card>
+
+          {/* Hourly */}
+          <Card className="p-4">
             <SwipeScroll
+              containerClassName="space-y-2"
+              top={
+                <div className="text-sm font-semibold text-slate-900 text-center">
+                  시간대별
+                </div>
+              }
+              showArrows
               className="-mx-1 max-w-full px-1 py-1 snap-x snap-mandatory"
               dragClassName="flex min-w-0 gap-2"
             >
@@ -217,11 +249,13 @@ export function PlacePage() {
                 );
               })}
             </SwipeScroll>
-          </div>
-        ) : (
+          </Card>
+        </div>
+      ) : (
+        <Card className="p-4">
           <EmptyState title="해당 장소의 정보가 제공되지 않습니다." />
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }

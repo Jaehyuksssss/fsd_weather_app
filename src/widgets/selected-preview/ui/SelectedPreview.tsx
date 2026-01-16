@@ -78,6 +78,13 @@ export function SelectedPreview({
           </div>
         ) : weather ? (
           <SwipeScroll
+            showArrows
+            containerClassName="space-y-2"
+            top={
+              <div className="text-sm font-semibold text-slate-900 text-center">
+                시간대별
+              </div>
+            }
             className="-mx-1 max-w-full px-1 py-1 snap-x snap-mandatory"
             dragClassName="flex min-w-0 gap-2"
           >
@@ -114,13 +121,6 @@ export function SelectedPreview({
             해당 장소의 정보가 제공되지 않습니다.
           </div>
         )}
-
-        {import.meta.env.DEV ? (
-          <div className="mt-3 text-[11px] text-slate-600">
-            debug: source={overrideCoords ? "search" : "location"} / coords=
-            {coords.lat.toFixed(4)},{coords.lon.toFixed(4)}
-          </div>
-        ) : null}
       </Card>
     </section>
   );

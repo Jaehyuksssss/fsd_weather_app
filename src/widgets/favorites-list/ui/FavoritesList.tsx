@@ -11,17 +11,26 @@ type FavoritesListProps = {
   onSelect?: (favorite: Favorite) => void;
   onRemove?: (placeId: string) => void;
   onUpdateAlias?: (placeId: string, alias?: string) => void;
+  onReorder?: (placeId: string, toIndex: number) => void;
 };
 
 function FavoriteCard({
   favorite,
   isSelected,
+  isDraggingAny,
+  draggingPlaceId,
+  overPlaceId,
+  onDragHandlePointerDown,
   onSelect,
   onRemove,
   onUpdateAlias,
 }: {
   favorite: Favorite;
   isSelected: boolean;
+  isDraggingAny: boolean;
+  draggingPlaceId: string | null;
+  overPlaceId: string | null;
+  onDragHandlePointerDown?: (e: React.PointerEvent, placeId: string) => void;
   onSelect?: (favorite: Favorite) => void;
   onRemove?: (placeId: string) => void;
   onUpdateAlias?: (placeId: string, alias?: string) => void;
@@ -32,6 +41,8 @@ function FavoriteCard({
   const [isEditing, setIsEditing] = useState(false);
   const [draftAlias, setDraftAlias] = useState(favorite.alias ?? "");
   const aliasWrapRef = useRef<HTMLDivElement | null>(null);
+  const isDraggingThis = draggingPlaceId === favorite.placeId;
+  const isOverThis = overPlaceId === favorite.placeId;
 
   const saveAndClose = useCallback(() => {
     onUpdateAlias?.(favorite.placeId, draftAlias);
@@ -56,15 +67,55 @@ function FavoriteCard({
 
   return (
     <Card
+      data-favorite-card="true"
+      data-placeid={favorite.placeId}
       className={[
         "relative px-4 py-3",
         isSelected ? "ring-2 ring-sky-500/25 border-sky-500/25" : undefined,
+        isDraggingThis ? "opacity-70" : undefined,
+        !isDraggingThis && draggingPlaceId && isOverThis
+          ? "ring-2 ring-slate-900/10"
+          : undefined,
       ]
         .filter(Boolean)
         .join(" ")}
     >
+      {/* Drag handle (reorder). Keep it a small explicit target to avoid accidental drags. */}
+      {!isEditing && onDragHandlePointerDown ? (
+        <div className="absolute right-3 top-3 z-20 pointer-events-auto">
+          <button
+            type="button"
+            aria-label="순서 변경"
+            className="grid h-8 w-8 place-items-center rounded-lg border border-black/10 bg-black/[0.03] text-slate-600 hover:bg-black/[0.06] cursor-grab active:cursor-grabbing"
+            onPointerDown={(e) => onDragHandlePointerDown(e, favorite.placeId)}
+          >
+            <svg
+              viewBox="0 0 20 20"
+              width="16"
+              height="16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M7 5.5h10M7 10h10M7 14.5h10"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 6.2h.01M4 10.7h.01M4 15.2h.01"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      ) : null}
+
       {/* Click/hover area: cover the whole card except buttons (buttons are pointer-events-auto). */}
-      {!isEditing ? (
+      {!isEditing && !isDraggingAny ? (
         <Link
           to={`/place/${favorite.placeId}`}
           aria-label={`상세 보기: ${favorite.alias ?? favorite.label}`}
@@ -190,7 +241,110 @@ export function FavoritesList({
   onSelect,
   onRemove,
   onUpdateAlias,
+  onReorder,
 }: FavoritesListProps) {
+  const dragRef = useRef<{
+    placeId: string;
+    pointerId: number;
+  } | null>(null);
+  const uxRef = useRef<{
+    userSelect?: string;
+    webkitUserSelect?: string;
+  } | null>(null);
+
+  const [draggingPlaceId, setDraggingPlaceId] = useState<string | null>(null);
+  const [overPlaceId, setOverPlaceId] = useState<string | null>(null);
+
+  const isDraggingAny = draggingPlaceId !== null;
+
+  const onDragHandlePointerDown = useCallback(
+    (e: React.PointerEvent, placeId: string) => {
+      if (!onReorder) return;
+      if (favorites.length < 2) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const bodyStyle = document.body.style;
+      uxRef.current = {
+        userSelect: bodyStyle.userSelect,
+        webkitUserSelect: (
+          bodyStyle as CSSStyleDeclaration & {
+            webkitUserSelect?: string;
+          }
+        ).webkitUserSelect,
+      };
+      bodyStyle.userSelect = "none";
+      (
+        bodyStyle as CSSStyleDeclaration & { webkitUserSelect?: string }
+      ).webkitUserSelect = "none";
+
+      dragRef.current = { placeId, pointerId: e.pointerId };
+      setDraggingPlaceId(placeId);
+      setOverPlaceId(placeId);
+    },
+    [favorites.length, onReorder]
+  );
+
+  useEffect(() => {
+    if (!draggingPlaceId) return;
+
+    const drag = dragRef.current;
+    if (!drag) return;
+
+    const onMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== drag.pointerId) return;
+      ev.preventDefault();
+
+      const el = document.elementFromPoint(
+        ev.clientX,
+        ev.clientY
+      ) as HTMLElement | null;
+      const card = el?.closest?.(
+        "[data-favorite-card='true']"
+      ) as HTMLElement | null;
+      const over = card?.dataset.placeid ?? null;
+      if (over) setOverPlaceId(over);
+    };
+
+    const finish = (ev: PointerEvent) => {
+      if (ev.pointerId !== drag.pointerId) return;
+      ev.preventDefault();
+
+      const fromIndex = favorites.findIndex((f) => f.placeId === drag.placeId);
+      const overId = overPlaceId ?? drag.placeId;
+      const toIndex = favorites.findIndex((f) => f.placeId === overId);
+
+      if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+        onReorder?.(drag.placeId, toIndex);
+      }
+
+      dragRef.current = null;
+      setDraggingPlaceId(null);
+      setOverPlaceId(null);
+
+      const prev = uxRef.current;
+      if (prev) {
+        const bodyStyle = document.body.style;
+        bodyStyle.userSelect = prev.userSelect ?? "";
+        (
+          bodyStyle as CSSStyleDeclaration & { webkitUserSelect?: string }
+        ).webkitUserSelect = prev.webkitUserSelect ?? "";
+        uxRef.current = null;
+      }
+    };
+
+    document.addEventListener("pointermove", onMove, { capture: true });
+    document.addEventListener("pointerup", finish, { capture: true });
+    document.addEventListener("pointercancel", finish, { capture: true });
+    return () => {
+      document.removeEventListener("pointermove", onMove, true);
+      document.removeEventListener("pointerup", finish, true);
+      document.removeEventListener("pointercancel", finish, true);
+    };
+  }, [draggingPlaceId, favorites, onReorder, overPlaceId]);
+
   return (
     <section className="space-y-3">
       <SectionTitle title="Favorites" subtitle="최대 6개" />
@@ -208,6 +362,10 @@ export function FavoritesList({
               key={fav.placeId}
               favorite={fav}
               isSelected={selectedPlaceId === fav.placeId}
+              isDraggingAny={isDraggingAny}
+              draggingPlaceId={draggingPlaceId}
+              overPlaceId={overPlaceId}
+              onDragHandlePointerDown={onDragHandlePointerDown}
               onSelect={onSelect}
               onRemove={onRemove}
               onUpdateAlias={onUpdateAlias}

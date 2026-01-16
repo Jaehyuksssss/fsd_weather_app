@@ -104,4 +104,20 @@ export const favoritesRepo = {
     });
     write(next);
   },
+
+  reorder(placeId: string, toIndex: number): void {
+    const items = read();
+    const fromIndex = items.findIndex((f) => f.placeId === placeId);
+    if (fromIndex < 0) return;
+
+    const max = items.length - 1;
+    const clampedTo = Math.max(0, Math.min(max, toIndex));
+    if (fromIndex === clampedTo) return;
+
+    const next = [...items];
+    const [moved] = next.splice(fromIndex, 1);
+    if (!moved) return;
+    next.splice(clampedTo, 0, moved);
+    write(next);
+  },
 } as const;
