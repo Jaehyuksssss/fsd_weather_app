@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import type { Favorite } from "../../../entities/favorite/model/types";
 import { useWeatherQueryResult } from "../../../entities/weather/query/useWeatherQuery";
@@ -40,8 +41,8 @@ function FavoriteCard({
         .filter(Boolean)
         .join(" ")}
     >
-      <button
-        type="button"
+      <Link
+        to={`/place/${favorite.placeId}`}
         className="block w-full text-left"
         onClick={() => onSelect?.(favorite)}
       >
@@ -71,7 +72,7 @@ function FavoriteCard({
             {weather ? `${weather.currentTempC}°` : "-"}
           </div>
         </div>
-      </button>
+      </Link>
 
       <div className="mt-3 flex items-center justify-between gap-2">
         {isEditing ? (
