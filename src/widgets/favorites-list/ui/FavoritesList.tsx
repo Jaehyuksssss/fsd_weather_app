@@ -51,6 +51,11 @@ function FavoriteCard({
             <div className="text-sm font-semibold">
               {favorite.alias ?? favorite.label}
             </div>
+            {favorite.alias ? (
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                {favorite.label}
+              </div>
+            ) : null}
             <div className="mt-1 text-xs text-slate-600">
               {weatherQuery.isLoading
                 ? "날씨 불러오는 중..."

@@ -73,6 +73,11 @@ export function PlacePage() {
                 <div className="text-sm font-semibold text-slate-900">
                   {favorite.alias ?? favorite.label}
                 </div>
+                {favorite.alias ? (
+                  <div className="mt-0.5 text-[11px] text-slate-500">
+                    {favorite.label}
+                  </div>
+                ) : null}
                 <div className="mt-1 text-xs text-slate-600">Open-Meteo</div>
                 <div className="mt-1 text-xs text-slate-600">
                   최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
