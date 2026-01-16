@@ -43,7 +43,7 @@ function FavoriteCard({
     >
       <Link
         to={`/place/${favorite.placeId}`}
-        className="block w-full text-left"
+        className="block w-full rounded-xl -mx-2 px-2 py-2 text-left transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
         onClick={() => onSelect?.(favorite)}
       >
         <div className="flex items-start justify-between gap-4">

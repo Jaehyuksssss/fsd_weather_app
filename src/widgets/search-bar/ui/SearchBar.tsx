@@ -57,11 +57,16 @@ export function SearchBar({
   const showingRecent = trimmed.length === 0;
   const listItems = useMemo(() => {
     if (showingRecent) {
-      return recent.map((label) => ({ key: `recent:${label}`, label }));
+      return recent.map((label) => ({
+        key: `recent:${label}`,
+        label,
+        kind: "recent" as const,
+      }));
     }
     return suggestions.map((s) => ({
       key: `suggestion:${s.raw}`,
       label: s.label,
+      kind: "suggestion" as const,
     }));
   }, [recent, showingRecent, suggestions]);
 
@@ -213,7 +218,13 @@ export function SearchBar({
           <div className="-mx-4 border-t border-black/10">
             {showList ? (
               <div id={listboxId} role="listbox">
-                <ul className="max-h-[min(60vh,576px)] overflow-auto divide-y divide-black/10">
+                {showingRecent ? (
+                  <div className="px-4 py-3 text-[13px] font-semibold text-slate-600">
+                    최근 검색어
+                  </div>
+                ) : null}
+
+                <ul className="max-h-[min(60vh,576px)] overflow-auto px-2 pb-2">
                   {listItems.map((item, idx) => {
                     const isActive = idx === clampedActiveIndex;
                     return (
@@ -224,20 +235,67 @@ export function SearchBar({
                           aria-selected={isActive}
                           type="button"
                           className={[
-                            "flex w-full items-center justify-between px-4 py-3 text-left text-sm",
-                            isActive
-                              ? "bg-black/[0.04]"
-                              : "hover:bg-black/[0.04]",
+                            "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm",
+                            isActive ? "bg-black/10" : "hover:bg-black/10",
                           ].join(" ")}
                           onMouseDown={(ev) => {
-                            // prevent blur before click
                             ev.preventDefault();
                           }}
                           onMouseEnter={() => setActiveIndex(idx)}
                           onClick={() => selectLabel(item.label)}
                         >
-                          <span className="text-slate-900">{item.label}</span>
-                          <span className="text-[11px] text-slate-500">
+                          <span
+                            className="grid h-6 w-6 place-items-center rounded-md bg-black/[0.06] text-slate-600"
+                            aria-hidden="true"
+                          >
+                            {item.kind === "recent" ? (
+                              <svg
+                                viewBox="0 0 20 20"
+                                width="14"
+                                height="14"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M10 16.5a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                />
+                                <path
+                                  d="M10 5.8v4.3l2.6 1.6"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                viewBox="0 0 20 20"
+                                width="14"
+                                height="14"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M8.7 14.4a5.7 5.7 0 1 1 0-11.4 5.7 5.7 0 0 1 0 11.4Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                />
+                                <path
+                                  d="M13 13l4 4"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            )}
+                          </span>
+
+                          <span className="min-w-0 flex-1 truncate text-slate-900">
+                            {item.label}
+                          </span>
+                          <span className="ml-auto text-[11px] text-slate-500">
                             Enter
                           </span>
                         </button>

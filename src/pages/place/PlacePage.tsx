@@ -134,22 +134,34 @@ export function PlacePage() {
               className="-mx-1 max-w-full px-1 py-1 snap-x snap-mandatory"
               dragClassName="flex min-w-0 gap-2"
             >
-              {weather.hourly.slice(0, 12).map((h) => (
-                <div
-                  key={h.timeISO}
-                  className="shrink-0 w-[92px] snap-start rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2 text-center"
-                >
-                  <div className="text-[12px] font-semibold leading-4 text-slate-700">
-                    {h.timeISO.slice(5, 10).replace("-", "/")}
+              {weather.hourly.slice(0, 12).map((h, idx, arr) => {
+                const day = h.timeISO.slice(0, 10);
+                const prevDay =
+                  idx > 0 ? arr[idx - 1]?.timeISO.slice(0, 10) : null;
+                const showDay = idx === 0 || day !== prevDay;
+
+                return (
+                  <div
+                    key={h.timeISO}
+                    className="shrink-0 w-[92px] snap-start rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2 text-center"
+                  >
+                    <div
+                      className={[
+                        "text-[12px] font-semibold leading-4 text-slate-700",
+                        showDay ? "" : "opacity-0",
+                      ].join(" ")}
+                    >
+                      {h.timeISO.slice(5, 10).replace("-", "/")}
+                    </div>
+                    <div className="mt-1 text-[11px] leading-4 text-slate-600">
+                      {h.timeISO.slice(11, 16)}
+                    </div>
+                    <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
+                      {h.tempC}°
+                    </div>
                   </div>
-                  <div className="mt-1 text-[11px] leading-4 text-slate-600">
-                    {h.timeISO.slice(11, 16)}
-                  </div>
-                  <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-                    {h.tempC}°
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </SwipeScroll>
           </div>
         ) : (
