@@ -6,6 +6,17 @@ body,
   height: 100%;
 }
 
+/* Global typography scale (Tailwind uses rem, so this scales the whole UI) */
+html {
+  font-size: 17px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 18px;
+  }
+}
+
 body {
   margin: 0;
 }

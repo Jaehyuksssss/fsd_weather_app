@@ -112,32 +112,35 @@ export function HomePage() {
         }}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="min-w-0 space-y-6">
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="min-w-0">
           <MyLocationCard />
-          <FavoritesList
-            favorites={favorites.favorites}
-            selectedPlaceId={selectedPlaceId}
-            onSelect={(fav) => {
-              setSelectedLabel(fav.alias ?? fav.label);
-              setSelectedCoords(fav.coords);
-              setSelectedPlaceId(fav.placeId);
-              setGeocodeStatus("success");
-              setGeocodeMessage(undefined);
-            }}
-            onRemove={(placeId) => favorites.removeFavorite(placeId)}
-            onUpdateAlias={(placeId, alias) =>
-              favorites.updateAlias(placeId, alias)
-            }
-          />
         </div>
-        <div className="min-w-0 lg:pt-[34px]">
+        <div className="min-w-0">
           <SelectedPreview
             coords={selectedCoords}
             resolvingStatus={geocodeStatus}
             resolvingMessage={geocodeMessage}
           />
         </div>
+      </div>
+
+      <div className="min-w-0">
+        <FavoritesList
+          favorites={favorites.favorites}
+          selectedPlaceId={selectedPlaceId}
+          onSelect={(fav) => {
+            setSelectedLabel(fav.alias ?? fav.label);
+            setSelectedCoords(fav.coords);
+            setSelectedPlaceId(fav.placeId);
+            setGeocodeStatus("success");
+            setGeocodeMessage(undefined);
+          }}
+          onRemove={(placeId) => favorites.removeFavorite(placeId)}
+          onUpdateAlias={(placeId, alias) =>
+            favorites.updateAlias(placeId, alias)
+          }
+        />
       </div>
     </div>
   );

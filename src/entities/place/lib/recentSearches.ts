@@ -38,6 +38,19 @@ export const recentSearches = {
     write(next);
     return next;
   },
+
+  remove(label: string): string[] {
+    const normalized = label.trim();
+    if (normalized.length === 0) return read();
+    const items = read();
+    const next = items.filter((x) => x !== normalized);
+    write(next);
+    return next;
+  },
+
+  clear(): void {
+    write([]);
+  },
 } as const;
 
 

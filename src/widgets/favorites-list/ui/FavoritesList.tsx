@@ -35,17 +35,21 @@ function FavoriteCard({
   return (
     <Card
       className={[
-        "px-4 py-3",
+        "relative px-4 py-3",
         isSelected ? "ring-2 ring-sky-500/25 border-sky-500/25" : undefined,
       ]
         .filter(Boolean)
         .join(" ")}
     >
+      {/* Click/hover area: cover the whole card except buttons (buttons are pointer-events-auto). */}
       <Link
         to={`/place/${favorite.placeId}`}
-        className="block w-full rounded-xl -mx-2 px-2 py-2 text-left transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
+        aria-label={`상세 보기: ${favorite.alias ?? favorite.label}`}
+        className="absolute inset-0 rounded-2xl transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
         onClick={() => onSelect?.(favorite)}
-      >
+      />
+
+      <div className="relative z-10 pointer-events-none">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-sm font-semibold">
@@ -63,7 +67,7 @@ function FavoriteCard({
                 ? "연동 실패"
                 : ""}
             </div>
-            <div className="mt-3 text-[11px] text-slate-600">
+            <div className="mt-3 text-sm font-medium text-slate-700">
               {weather ? (
                 <>
                   최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
@@ -77,9 +81,9 @@ function FavoriteCard({
             {weather ? `${weather.currentTempC}°` : "-"}
           </div>
         </div>
-      </Link>
+      </div>
 
-      <div className="mt-3 flex items-center justify-between gap-2">
+      <div className="relative z-10 mt-3 flex items-center justify-between gap-2 pointer-events-auto">
         {isEditing ? (
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <input
@@ -133,12 +137,14 @@ export function FavoritesList({
   return (
     <section className="space-y-3">
       <SectionTitle title="Favorites" subtitle="최대 6개" />
-      <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {favorites.length === 0 ? (
-          <EmptyState
-            title="즐겨찾기가 비어있어요"
-            description="검색으로 추가해보세요."
-          />
+          <div className="sm:col-span-2">
+            <EmptyState
+              title="즐겨찾기가 비어있어요"
+              description="검색으로 추가해보세요."
+            />
+          </div>
         ) : (
           favorites.map((fav) => (
             <FavoriteCard

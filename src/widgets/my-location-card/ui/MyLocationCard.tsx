@@ -50,7 +50,7 @@ export function MyLocationCard() {
                   ? "대략 위치 (IP 기반)"
                   : ""}
               </div>
-              <div className="mt-3 text-xs text-slate-600">
+              <div className="mt-3 text-sm font-medium text-slate-700">
                 최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
               </div>
             </div>
