@@ -46,7 +46,7 @@ export function SelectedPlaceCard({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="text-sm font-semibold">{label}</div>
-              <div className="mt-1 text-xs text-slate-600">Open-Meteo</div>
+              <div className="mt-1 text-xs text-slate-600"></div>
               <div className="mt-3 text-xs text-slate-600">
                 최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
               </div>

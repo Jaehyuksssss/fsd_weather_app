@@ -48,7 +48,7 @@ export function MyLocationCard() {
                   ? "위치명 불러오기 실패"
                   : location.source === "ip"
                   ? "대략 위치 (IP 기반)"
-                  : "Open-Meteo"}
+                  : ""}
               </div>
               <div className="mt-3 text-xs text-slate-600">
                 최고 {weather.maxTempC}° · 최저 {weather.minTempC}°

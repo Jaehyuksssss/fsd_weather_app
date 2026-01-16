@@ -71,7 +71,7 @@ export function SelectedPlaceInline({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="text-sm font-semibold text-slate-900">{label}</div>
-          <div className="mt-1 text-xs text-slate-600">Open-Meteo</div>
+          <div className="mt-1 text-xs text-slate-600"></div>
           <div className="mt-2 text-xs text-slate-600">
             최고 {weather.maxTempC}° · 최저 {weather.minTempC}°
           </div>

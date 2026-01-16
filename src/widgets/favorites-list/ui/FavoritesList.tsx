@@ -61,7 +61,7 @@ function FavoriteCard({
                 ? "날씨 불러오는 중..."
                 : weatherQuery.isError
                 ? "연동 실패"
-                : "Open-Meteo"}
+                : ""}
             </div>
             <div className="mt-3 text-[11px] text-slate-600">
               {weather ? (
