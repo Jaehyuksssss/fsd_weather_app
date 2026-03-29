@@ -19,7 +19,10 @@ export function HomePage() {
       <header className="space-y-1">
         <div className="flex items-center justify-between gap-4">
           <div className="text-2xl font-semibold tracking-tight">Weather</div>
-          <Link className="text-sm text-white/70 hover:text-white" to="/qr">
+          <Link
+            className="text-sm text-white/70 hover:text-white"
+            to="/qr/create"
+          >
             QR 만들기
           </Link>
         </div>
