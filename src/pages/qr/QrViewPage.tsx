@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 function useQuery() {
   const loc = useLocation();
@@ -63,14 +63,6 @@ export function QrViewPage() {
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-between text-sm">
-            <Link className="text-slate-700 underline" to="/qr/create">
-              QR 다시 만들기
-            </Link>
-            <Link className="text-slate-700 underline" to="/">
-              메인으로
-            </Link>
-          </div>
         </main>
       </div>
     </div>
