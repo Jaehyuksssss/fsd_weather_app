@@ -13,6 +13,9 @@
 ## 데모
 
 - 배포 URL: https://app.figmaboy.org/
+- QR: `public/qr_deploy.svg`
+
+![Demo QR](./public/qr_deploy.svg)
 
 ## 로컬 실행 방법
 
@@ -39,7 +42,7 @@ npm run dev
   - 첫 진입 시 현재 위치를 감지하고 현재 기온/당일 최저·최고/시간대별 기온 표시
   - 실패 시 IP 기반 위치 → 마지막 저장 위치 → 기본값(서울) 순으로 fallback
 - **검색**
-  - 제공된 `korea_districts.json` 기반 자동완성(키보드 내비게이션/IME 대응)
+  - 제공된 `korea_districts.json` 기반 자동완성(키보드 내비게이션/IME (한글 입력 시 엔터를 치면 글자가 두 번 입력되는 버그 대응)
   - 선택한 장소를 지오코딩(Open‑Meteo → Nominatim fallback) 후 날씨 조회
 - **선택한 장소 카드**
   - 지오코딩 로딩/실패 상태 표시

@@ -5,6 +5,7 @@ import { SelectedPreview } from "../../widgets/selected-preview";
 import { SelectedPlaceInline } from "../../widgets/selected-place-card";
 import { useFavorites } from "../../entities/favorite/model/useFavorites";
 import { useSelectPlace } from "../../features/select-place/model/useSelectPlace";
+import { Link } from "react-router-dom";
 
 export function HomePage() {
   const favorites = useFavorites();
@@ -16,7 +17,12 @@ export function HomePage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <div className="text-2xl font-semibold tracking-tight">Weather</div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-2xl font-semibold tracking-tight">Weather</div>
+          <Link className="text-sm text-white/70 hover:text-white" to="/qr">
+            QR 만들기
+          </Link>
+        </div>
         <div className="text-sm text-white/60">검색 · 현재 위치 · 즐겨찾기</div>
       </header>
 

@@ -1,0 +1,2 @@
+export { QrPage } from "./QrPage";
+
